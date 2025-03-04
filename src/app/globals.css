@@ -17,6 +17,7 @@
   --monitor-vital-box-title-height: 20px;
   --monitor-vital-box-vital-height: 100px;
   --monitor-vital-box-height: var(--monitor-vital-box-title-height) + var(--monitor-vital-box-vital-height);
+  --vital-box-padding-default: 3px;
 }
 
 @media (prefers-color-scheme: dark) {

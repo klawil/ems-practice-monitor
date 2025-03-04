@@ -1,7 +1,3 @@
-:root {
-  --vital-box-padding-default: 3px;
-}
-
 .monitorVitalBox {
   width: var(--monitor-vital-box-width);
   height: var(--monitor-vital-box-height);

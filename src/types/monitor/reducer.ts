@@ -36,8 +36,12 @@ interface Co2WaveformGeneratorConfig extends WaveformGeneratorConfig {
   exhaleRatio: number;
 }
 type Spo2WaveformGeneratorStages = 'rise1' | 'fall1' | 'rise2' | 'fall2';
-interface Spo2WaveformGeneratorConfig extends WaveformGeneratorConfig {}
-interface EkgWaveformGeneratorConfig extends WaveformGeneratorConfig {}
+interface Spo2WaveformGeneratorConfig extends WaveformGeneratorConfig {
+  a?: null;
+}
+interface EkgWaveformGeneratorConfig extends WaveformGeneratorConfig {
+  a?: null;
+}
 type LeadIIWaveformGeneratorStages = 'p1' | 'p2' | 'pq' | 'q' | 'r' | 's' | 'st' | 't1' | 't2'
   | 'baseline';
 
