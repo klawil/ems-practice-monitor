@@ -1,6 +1,22 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --monitor-bg-color: rgb(27, 34, 26);
+  --monitor-title-bg-color: rgb(50, 64, 72);
+  --monitor-no-waveform-color: white;
+  
+  --monitor-i-waveform-color: rgb(166, 217, 153);
+  --monitor-ii-waveform-color: rgb(166, 217, 153);
+  --monitor-iii-waveform-color: rgb(166, 217, 153);
+  --monitor-spo2-waveform-color: rgb(119, 178, 231);
+  --monitor-co2-waveform-color: rgb(240, 211, 145);
+  --monitor-co2-baseline-color: rgb(33, 40, 33);
+
+  --monitor-vital-box-width: 125px;
+  --monitor-vital-box-title-height: 20px;
+  --monitor-vital-box-vital-height: 100px;
+  --monitor-vital-box-height: var(--monitor-vital-box-title-height) + var(--monitor-vital-box-vital-height);
 }
 
 @media (prefers-color-scheme: dark) {

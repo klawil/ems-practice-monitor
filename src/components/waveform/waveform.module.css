@@ -1,0 +1,24 @@
+.waveform {
+  position: relative;
+}
+
+.waveformLabel {
+  text-align: right;
+  font-size: 15px;
+  line-height: 13px;
+
+  position: absolute;
+  right: 3px;
+  top: 30px;
+  font-family: unset;
+}
+
+.waveformLabelI, .waveformLabelII, .waveformLabelIII {
+  color: var(--monitor-i-waveform-color);
+}
+.waveformLabelSpO2 {
+  color: var(--monitor-spo2-waveform-color);
+}
+.waveformLabelCO2 {
+  color: var(--monitor-co2-waveform-color);
+}

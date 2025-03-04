@@ -1,0 +1,135 @@
+:root {
+  --vital-box-padding-default: 3px;
+}
+
+.monitorVitalBox {
+  width: var(--monitor-vital-box-width);
+  height: var(--monitor-vital-box-height);
+  margin: 0;
+  padding: 0;
+}
+
+.monitorVitalBoxTitle {
+  background-color: var(--monitor-title-bg-color);
+  color: var(--monitor-no-waveform-color);
+  font-size: 15px;
+  line-height: 20px;
+  height: 20px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto auto;
+  padding: 0 5px;
+}
+
+.monitorVitalBoxUnit {
+  text-align: right;
+  font-weight: bold;
+}
+
+.monitorVitalBoxVital {
+  color: var(--monitor-no-waveform-color);
+  font-size: 18px;
+  line-height: 20px;
+  height: var(--monitor-vital-box-vital-height);
+  width: 100%;
+  position: relative;
+  border-right: 1px solid var(--monitor-title-bg-color);
+  font-weight: bold;
+}
+
+.monitorVitalBoxAlarm {
+  width: calc(20px - var(--vital-box-padding-default) / 2);
+  height: calc(20px - var(--vital-box-padding-default) / 2);
+  position: absolute;
+  top: var(--vital-box-padding-default);
+  left: var(--vital-box-padding-default);
+  background-color: white;
+}
+
+.monitorVitalBoxHR1 {
+  font-size: 55px;
+  line-height: 45px;
+  text-align: right;
+  position: absolute;
+  top: var(--vital-box-padding-default);
+  right: var(--vital-box-padding-default);
+}
+
+.monitorVitalBoxSpO21,
+.monitorVitalBoxCO21,
+.monitorVitalBoxBP1,
+.monitorVitalBoxBP2
+{
+  font-size: 50px;
+  line-height: 40px;
+  text-align: right;
+  position: absolute;
+  top: var(--vital-box-padding-default);
+  right: var(--vital-box-padding-default);
+}
+.monitorVitalBoxSpO2Bar {
+  width: 8px;
+  height: 40px;
+  background-color: var(--monitor-no-waveform-color);
+  
+  position: absolute;
+  left: 26px;
+  top: var(--vital-box-padding-default);
+}
+.monitorVitalBoxSpO2BarFill {
+  width: 6px;
+  height: 20px;
+  background-color: var(--monitor-bg-color);
+
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  right: 1px;
+}
+
+.monitorVitalBoxCO22 {
+  font-size: 20px;
+  line-height: 16px;
+  text-align: right;
+  position: absolute;
+  top: calc(1.5 * var(--vital-box-padding-default) + 20px);
+  left: var(--vital-box-padding-default);
+  width: 24px;
+}
+.monitorVitalBoxCO22::after {
+  font-size: 10px;
+  line-height: 8px;
+  position: absolute;
+  top: 0;
+  left: calc(var(--vital-box-padding-default) + 24px);
+  content: 'RR';
+}
+
+.monitorVitalBoxBP2 {
+  top: calc(2 * var(--vital-box-padding-default) + 40px);
+}
+.monitorVitalBoxBP3 {
+  font-size: 15px;
+  line-height: 15px;
+  text-align: right;
+  position: absolute;
+  bottom: calc(var(--monitor-vital-box-vital-height) - 2 * (var(--vital-box-padding-default) + 40px));
+  left: var(--vital-box-padding-default);
+  width: 24px;
+}
+
+.monitorVitalBoxHR {
+  color: var(--monitor-spo2-waveform-color);
+}
+
+.monitorVitalBoxSpO2 {
+  color: var(--monitor-spo2-waveform-color);
+
+  .monitorVitalBoxSpO2Bar {
+    background-color: var(--monitor-spo2-waveform-color);
+  }
+}
+
+.monitorVitalBoxCO2 {
+  color: var(--monitor-co2-waveform-color);
+}
