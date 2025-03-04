@@ -1,8 +1,14 @@
 // Types for the individual vital boxes
-export type VitalBoxTypes = 'HR' | 'SpO2' | 'CO2' | 'BP';
+export const vitalTypes = [
+  'HR',
+  'SpO2',
+  'CO2',
+  'RR',
+  'SBP',
+  'DBP',
+] as const;
 interface VitalState {
-  value1: number;
-  value2: number;
+  value: number;
   waveformVal: number;
   hasWaveform: boolean;
 }
@@ -19,6 +25,13 @@ interface WaveformBoxState {
   hasData: boolean;
 }
 
+export interface VitalGeneratorConfig {
+  targetValue: number;
+  targetRange: number;
+  maxUpdateFreq: number;
+  maxChangePerS: number;
+}
+
 export interface WaveformGeneratorConfig {
   noiseLevel: number;
   permitBelow0?: boolean;
@@ -26,7 +39,6 @@ export interface WaveformGeneratorConfig {
 export interface WaveformGeneratorState<PossibleStages extends string> {
   currentStage: PossibleStages;
   currentStageSamples: number;
-  // lastValue: number;
 }
 
 // Types for each waveform generator
@@ -47,7 +59,9 @@ type LeadIIWaveformGeneratorStages = 'p1' | 'p2' | 'pq' | 'q' | 'r' | 's' | 'st'
 
 // Overall state for the monitor
 export type MonitorState = {
-  [key in VitalBoxTypes]: VitalState;
+  [key in typeof vitalTypes[number]]: VitalState;
+} & {
+  [key in `${typeof vitalTypes[number]}GeneratorConfig`]: VitalGeneratorConfig;
 } & {
   [key in WaveformBoxNames]: WaveformBoxState;
 } & {
@@ -67,7 +81,7 @@ export type MonitorState = {
 // Actions for the reducer
 interface SetVitalAction extends Partial<VitalState> {
   type: 'SetVital';
-  vital: VitalBoxTypes;
+  vital: typeof vitalTypes[number];
 }
 interface SetWaveformAction extends Partial<WaveformBoxState> {
   type: 'SetWaveform';

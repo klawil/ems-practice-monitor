@@ -1,26 +1,26 @@
-import { MonitorAction, MonitorState, VitalBoxTypes, WaveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
+import { MonitorAction, MonitorState, vitalTypes, WaveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
 
 const waveformSamples = 150; // 5s at 30Hz or 10s at 15Hz
 
 const vitalTypeToWaveform: {
-  [key in VitalBoxTypes]: WaveformBoxTypes[];
+  [key in typeof vitalTypes[number]]?: WaveformBoxTypes[];
 } = {
   HR: [ 'I', 'II', 'III', 'SpO2' ],
   SpO2: [ 'SpO2' ],
   CO2: [ 'CO2' ],
-  BP: [],
+  RR: [ 'CO2' ],
 };
 
 function setWaveformColors(newState: MonitorState): MonitorState {
   const waveformTypes = Array.from(Array(3), (_, i) =>
     newState[`waveform${i}` as WaveformBoxNames].waveform);
-  (Object.keys(vitalTypeToWaveform) as VitalBoxTypes[])
+  (Object.keys(vitalTypeToWaveform) as (typeof vitalTypes[number])[])
     .forEach(vital => {
       const hasWaveform = waveformTypes
         .reduce((prev, waveform) => {
           if (prev) return prev;
 
-          return vitalTypeToWaveform[vital].includes(waveform);
+          return (vitalTypeToWaveform[vital] || []).includes(waveform);
         }, false);
       if (hasWaveform !== newState[vital].hasWaveform) {
         newState[vital] = {
@@ -36,28 +36,70 @@ export const defaultMonitorState: MonitorState = {
   lastTick: 0,
   lastTickTime: 0,
   HR: {
-    value1: 100,
-    value2: 0,
-    waveformVal: 0,
-    hasWaveform: true,
-  },
-  SpO2: {
-    value1: 95,
-    value2: 0,
-    waveformVal: 0,
-    hasWaveform: true,
-  },
-  CO2: {
-    value1: 35,
-    value2: 14,
-    waveformVal: 0,
-    hasWaveform: true,
-  },
-  BP: {
-    value1: 150,
-    value2: 100,
+    value: 100,
     waveformVal: 0,
     hasWaveform: false,
+  },
+  HRGeneratorConfig: {
+    targetValue: 90,
+    targetRange: 5,
+    maxChangePerS: 5,
+    maxUpdateFreq: 5,
+  },
+  SpO2: {
+    value: 95,
+    waveformVal: 0,
+    hasWaveform: true,
+  },
+  SpO2GeneratorConfig: {
+    targetValue: 95,
+    targetRange: 3,
+    maxChangePerS: 5,
+    maxUpdateFreq: 1,
+  },
+  RR: {
+    value: 18,
+    waveformVal: 0,
+    hasWaveform: true,
+  },
+  RRGeneratorConfig: {
+    targetValue: 16,
+    targetRange: 3,
+    maxChangePerS: 5,
+    maxUpdateFreq: 5,
+  },
+  CO2: {
+    value: 35,
+    waveformVal: 0,
+    hasWaveform: true,
+  },
+  CO2GeneratorConfig: {
+    targetValue: 40,
+    targetRange: 3,
+    maxChangePerS: 5,
+    maxUpdateFreq: 5,
+  },
+  SBP: {
+    value: 150,
+    waveformVal: 0,
+    hasWaveform: false,
+  },
+  SBPGeneratorConfig: {
+    targetValue: 120,
+    targetRange: 5,
+    maxChangePerS: 60,
+    maxUpdateFreq: 60 * 5,
+  },
+  DBP: {
+    value: 100,
+    waveformVal: 0,
+    hasWaveform: false,
+  },
+  DBPGeneratorConfig: {
+    targetValue: 80,
+    targetRange: 5,
+    maxChangePerS: 60,
+    maxUpdateFreq: 60 * 5,
   },
   waveform0: {
     data: Array.from(Array(waveformSamples), () => null),

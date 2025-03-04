@@ -2,7 +2,7 @@
 
 import { Container } from "react-bootstrap";
 import { useEffect } from 'react';
-import VitalBox from "@/components/vital-box/vital-box";
+import VitalBox, { VitalBoxPartialProps } from "@/components/vital-box/vital-box";
 import styles from "./monitor.module.css";
 import Waveform from "@/components/waveform/waveform";
 import Clock from "@/components/clock/clock";
@@ -11,7 +11,7 @@ import { defaultMonitorState, stateReducer } from "@/logic/monitor/reducer";
 import { ActionDispatch } from "react";
 import { VitalGenerator } from "@/logic/monitor/vitalGenerator";
 import { CO2Generator, Spo2Generator } from "@/logic/monitor/waveformGenerator";
-import { MonitorAction, MonitorState, VitalBoxTypes, WaveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
+import { MonitorAction, MonitorState, vitalTypes, WaveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
 
 const waveformSamples = 30 * 5; // 30Hz for 5s
 const noDataWaveformBlips = 30;
@@ -27,71 +27,47 @@ const waveformSpeeds: {
   CO2: 0.5,
 };
 const waveformsToVitals: {
-  [key in WaveformBoxTypes]?: VitalBoxTypes;
+  [key in WaveformBoxTypes]?: typeof vitalTypes[number];
 } = {
   SpO2: 'SpO2',
   CO2: 'CO2',
 };
 
-const vitalBoxesToShow: VitalBoxTypes[] = [
-  'HR',
-  'SpO2',
-  'CO2',
-  'BP',
+const vitalBoxConfigs: VitalBoxPartialProps[] = [
+  {
+    label: 'HR',
+    vital1: 'HR',
+  },
+  {
+    label: 'SpO2',
+    vital1: 'SpO2',
+    unit: '%',
+  },
+  {
+    label: 'CO2',
+    vital1: 'CO2',
+    vital2: 'RR',
+    unit: 'mmHg',
+  },
+  {
+    label: 'BP',
+    vital1: 'SBP',
+    vital2: 'DBP',
+    unit: 'mmHg',
+  },
 ];
 
 const tickTime = Math.round(1000 / 30); // 30Hz
 
 const vitalGenerators: {
-  [key in VitalBoxTypes]: {
-    value1: VitalGenerator;
-    value2?: VitalGenerator;
-  }
+  [key in typeof vitalTypes[number]]: VitalGenerator;
 } = {
-  HR: {
-    value1: new VitalGenerator(
-      90,
-      5,
-      5,
-      5,
-    ),
-  },
-  SpO2: {
-    value1: new VitalGenerator(
-      95,
-      3,
-      5,
-      1,
-    ),
-  },
-  CO2: {
-    value1: new VitalGenerator(
-      40,
-      3,
-      5,
-      2,
-    ),
-    value2: new VitalGenerator(
-      16,
-      3,
-      5,
-      2,
-    ),
-  },
-  BP: {
-    value1: new VitalGenerator(
-      120,
-      5,
-      60,
-      10,
-    ),
-    value2: new VitalGenerator(
-      80,
-      5,
-      60,
-      10,
-    ),
-  },
+  HR: new VitalGenerator(90),
+  SpO2: new VitalGenerator(95),
+  CO2: new VitalGenerator(40),
+  RR: new VitalGenerator(16),
+  SBP: new VitalGenerator(120),
+  DBP: new VitalGenerator(80),
 };
 
 function updateWaveformsOrSetTimeout(
@@ -143,8 +119,8 @@ function updateWaveformsOrSetTimeout(
           switch (waveformState.waveform) {
             case 'CO2':
               [nextValue, generatorState] = CO2Generator.getNextValue(
-                vitalGenerators.CO2.value2?.get() || 100,
-                vitalGenerators.CO2.value1.get(),
+                vitalGenerators.RR.get(),
+                vitalGenerators.CO2.get(),
                 state.co2GeneratorConfig,
                 generatorState as MonitorState['co2GeneratorState'],
               );
@@ -152,8 +128,8 @@ function updateWaveformsOrSetTimeout(
               break;
             case 'SpO2':
               [nextValue, generatorState] = Spo2Generator.getNextValue(
-                vitalGenerators.HR.value1.get(),
-                vitalGenerators.SpO2.value1.get(),
+                vitalGenerators.HR.get(),
+                vitalGenerators.SpO2.get(),
                 state.spo2GeneratorConfig,
                 generatorState as MonitorState['spo2GeneratorState'],
               );
@@ -225,24 +201,13 @@ function updateWaveformsOrSetTimeout(
     });
 
     // Generate the data for the vitals
-    vitalBoxesToShow.forEach(vital => {
-      const newState = {
-        ...state[vital],
-      };
-      let wasChange = false;
-      (Object.keys(vitalGenerators[vital]) as ('value1' | 'value2')[])
-        .forEach(key => {
-          vitalGenerators[vital][key]?.increment();
-          newState[key] = vitalGenerators[vital][key]?.get() || newState[key];
-          if (newState[key] !== state[vital][key]) {
-            wasChange = true;
-          }
-        });
-      if (wasChange) {
+    vitalTypes.forEach(vital => {
+      vitalGenerators[vital].increment(state[`${vital}GeneratorConfig`]);
+      if (vitalGenerators[vital].get() !== state[vital].value) {
         dispatch({
           type: 'SetVital',
           vital,
-          ...newState,
+          value: vitalGenerators[vital].get(),
         });
       }
     });
@@ -266,10 +231,10 @@ export default function Monitor() {
     state,
   ]);
 
-  const vitalBoxes = vitalBoxesToShow.map((type) => <VitalBox
-    type={type}
-    state={state[type]}
-    key={type}
+  const vitalBoxes = vitalBoxConfigs.map((config, i) => <VitalBox
+    {...config}
+    state={state}
+    key={i}
   />);
   const waveforms = Array.from(Array(numWaveforms), (_, i) => <Waveform
     state={state[`waveform${i}` as WaveformBoxNames]}

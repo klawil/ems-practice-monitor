@@ -1,37 +1,24 @@
+import { VitalGeneratorConfig } from "@/types/monitor/reducer";
+
 export class VitalGenerator {
   private currentValue: number;
-  private targetValue: number;
-  private targetRange: number;
-  private maxChangeRate: number;
+  private lastUpdate: number = 0;
 
-  private lastUpdate: number;
-  private maxFreq: number;
-
-  constructor(
-    targetValue: number,
-    targetRange: number,
-    maxFreq: number,
-    maxChangeRate: number,
-  ) {
-    this.currentValue = targetValue;
-    this.targetValue = targetValue;
-    this.targetRange = targetRange;
-    this.maxChangeRate = maxChangeRate / maxFreq;
-    this.maxFreq = 1 / maxFreq;
-    this.lastUpdate = Date.now();
+  constructor(initialValue: number) {
+    this.currentValue = initialValue;
   }
 
-  increment() {
+  increment(config: VitalGeneratorConfig) {
     const nowTime = Date.now();
-    if (nowTime < this.lastUpdate + Math.ceil(1000 / this.maxFreq)) return;
+    if (nowTime < this.lastUpdate + Math.ceil(1000 * config.maxUpdateFreq)) return;
 
-    const rangeMin = this.targetValue - this.targetRange;
-    const rangeMax = this.targetValue + this.targetRange;
+    const rangeMin = config.targetValue - config.targetRange;
+    const rangeMax = config.targetValue + config.targetRange;
 
-    const maxDelta = Math.floor((nowTime - this.lastUpdate) * this.maxChangeRate / 1000);
+    const maxDelta = Math.floor((nowTime - this.lastUpdate) * config.maxChangePerS / 1000);
     const possibleMin = this.currentValue - maxDelta;
     const possibleMax = this.currentValue + maxDelta;
-    const directionOfChange = this.currentValue > this.targetValue
+    const directionOfChange = this.currentValue > config.targetValue
       ? -1
       : 1;
 
@@ -54,7 +41,7 @@ export class VitalGenerator {
       ? rangeMax
       : possibleMax;
     
-    this.currentValue = Math.round(Math.random() * (maxValue - minValue)) + minValue;
+    this.currentValue = Math.random() * (maxValue - minValue) + minValue;
   }
 
   get(): number {
