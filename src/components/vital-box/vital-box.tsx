@@ -45,7 +45,7 @@ export default function VitalBox({
         {vital3Val !== null && <div className={styles[`monitorVitalBox${label}3`]}>{vital3Val}</div>}
         {label === 'SpO2' && <div className={styles.monitorVitalBoxSpO2Bar}>
           <div className={styles.monitorVitalBoxSpO2BarFill} style={{
-            height: `${38 - Math.round(vital1WaveformVal / 38)}px`,
+            height: `${38 - Math.round(vital1WaveformVal / 100 * 38)}px`,
           }}></div>
         </div>}
       </div>
