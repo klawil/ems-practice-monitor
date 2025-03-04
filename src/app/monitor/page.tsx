@@ -244,9 +244,6 @@ export default function Monitor() {
   return (
     <Container
       fluid={true}
-      style={{
-        backgroundColor: 'black',
-      }}
     >
       <div className={styles.monitor}>
         <div className={styles.monitorVitalSide}>
