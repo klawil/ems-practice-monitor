@@ -1,4 +1,4 @@
-import { MonitorState, WaveformBoxTypes, WaveformGeneratorConfig, WaveformGeneratorState } from "@/types/monitor/reducer";
+import { monitorSensors, MonitorState, WaveformBoxTypes, WaveformGeneratorConfig, WaveformGeneratorState } from "@/types/monitor/reducer";
 
 type WaveformStageConfigs<
   PossibleStages extends string,
@@ -58,7 +58,7 @@ class WaveformGenerator<
     const totalDurationSamples = Math.round(totalDuration * this.updateRate * this.samplesPerUpdate);
 
     // Build the array of time for each stage
-    let stageTimings: [
+    const stageTimings: [
       PossibleStages,
       number,
     ][] = [];
@@ -164,6 +164,7 @@ export const chartWaveformConfig: {
     numSamplesMult: number;
     updatesPerTick: number;
     label: string;
+    sensor: typeof monitorSensors[number];
   };
 } = {
   SpO2: {
@@ -172,6 +173,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 1,
     label: 'SpO2',
     updatesPerTick: 1,
+    sensor: 'SpO2',
   },
   CO2: {
     chartMin: -5,
@@ -179,6 +181,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 1,
     label: 'CO2',
     updatesPerTick: 0.5,
+    sensor: 'ETCO2',
   },
   I: {
     chartMin: -50,
@@ -186,6 +189,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 5,
     label: 'I x 1.0',
     updatesPerTick: 1,
+    sensor: '3-lead',
   },
   II: {
     chartMin: -50,
@@ -193,6 +197,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 5,
     label: 'II x 1.0',
     updatesPerTick: 1,
+    sensor: '3-lead',
   },
   III: {
     chartMin: -50,
@@ -200,6 +205,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 5,
     label: 'III x 1.0',
     updatesPerTick: 1,
+    sensor: '3-lead',
   },
 };
 

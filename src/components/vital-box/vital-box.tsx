@@ -1,4 +1,4 @@
-import { MonitorState, vitalTypes } from "@/types/monitor/reducer";
+import { monitorSensors, MonitorState, vitalTypes } from "@/types/monitor/reducer";
 import styles from "./vital-box.module.css";
 import { BsBellSlashFill } from "react-icons/bs";
 
@@ -16,10 +16,106 @@ interface VitalBoxProps extends VitalBoxPartialProps {
   state: MonitorState;
 }
 
+const vitalTypeRequiredSensor: {
+  [key in typeof vitalTypes[number]]: {
+    sensor?: typeof monitorSensors[number];
+    colorString?: string;
+  }[];
+} = {
+  HR: [
+    {
+      sensor: '3-lead',
+      colorString: 'Cardiac',
+    },
+    {
+      sensor: '12-lead',
+      colorString: 'Cardiac',
+    },
+    {
+      sensor: 'SpO2',
+      colorString: 'SpO2',
+    },
+    {
+      colorString: 'Cardiac',
+    },
+  ],
+  SpO2: [
+    {
+      sensor: 'SpO2',
+      colorString: 'SpO2',
+    },
+    {
+      colorString: 'SpO2',
+    },
+  ],
+  CO2: [
+    {
+      sensor: 'ETCO2',
+      colorString: 'CO2',
+    },
+  ],
+  RR: [
+    {
+      sensor: 'ETCO2',
+      colorString: 'CO2',
+    },
+  ],
+  SBP: [
+    {
+      sensor: 'BP',
+    },
+  ],
+  DBP: [
+    {
+      sensor: 'BP',
+    },
+  ],
+};
+
 const vitalBoxesToAlwaysShow: VitalBoxTypes[] = [
   'HR',
   'SpO2',
 ];
+
+interface VitalCurrentState {
+  hasData: boolean;
+  colorClass: string | null;
+  value: number;
+  valueStr: string;
+}
+function getVitalInformation(
+  state: MonitorState,
+  vital: typeof vitalTypes[number],
+): VitalCurrentState {
+  const returnVal: VitalCurrentState = {
+    hasData: false,
+    colorClass: null,
+    value: 0,
+    valueStr: '---',
+  };
+
+  // Get the configuration for the vital
+  for (let i = 0; i < vitalTypeRequiredSensor[vital].length; i++) {
+    const sensorColorInfo = vitalTypeRequiredSensor[vital][i];
+    if (
+      typeof sensorColorInfo.sensor === 'undefined' ||
+      state.sensors[sensorColorInfo.sensor]
+    ) {
+      returnVal.hasData = typeof sensorColorInfo.sensor !== 'undefined'
+        && state.sensors[sensorColorInfo.sensor];
+      returnVal.colorClass = sensorColorInfo.colorString || null;
+      break;
+    }
+  }
+
+  // Get and format the data
+  if (returnVal.hasData) {
+    returnVal.value = Math.round(state[vital].value);
+    returnVal.valueStr = returnVal.value.toString();
+  }
+
+  return returnVal;
+}
 
 export default function VitalBox({
   label,
@@ -28,24 +124,25 @@ export default function VitalBox({
   vital2,
   state,
 }: VitalBoxProps) {
-  const colorClassName = state[vital1].hasWaveform ? styles[`monitorVitalBox${label}`] : '';
-  const vital1Val: number | null =  state[vital1].hasData
-    ? Math.round(state[vital1].value)
+  // Get the vital information
+  const vital1Info = getVitalInformation(state, vital1);
+  const vital2Info = vital2
+    ? getVitalInformation(state, vital2)
     : null;
-  const vital2Val: number | null = vital2 && state[vital2].hasData
-    ? Math.round(state[vital2].value)
+  const vital3Val: number | null = vital2 === 'DBP' && vital1Info.hasData && vital2Info && vital2Info.hasData
+    ? Math.round((2 * vital2Info.value + vital1Info.value) / 3)
     : null;
-  const vital3Val: number | null = vital1Val !== null && vital2 && vital2 === 'DBP' && vital2Val !== null
-    ? Math.round((2 * vital2Val + vital1Val) / 3)
+  const vital3Str: string | null = vital3Val !== null
+    ? vital3Val.toString()
     : null;
-  const hasData = state[vital1].hasData;
-  const showNoData = vitalBoxesToAlwaysShow.includes(label);
 
-  const vital1Str: string = vital1Val === null ? '---' : vital1Val.toString();
-  const vital2Str: string = vital2Val === null ? '---' : vital2Val.toString();
-  const vital3Str: string = vital3Val === null ? '---' : vital3Val.toString();
-  const vital1WaveformVal: number = vital1Val !== null ?
-    state[vital1].waveformVal
+  const colorClassName = vital1Info.colorClass !== null && typeof styles[`monitorVitalBox${vital1Info.colorClass}`] !== 'undefined'
+    ? styles[`monitorVitalBox${vital1Info.colorClass}`]
+    : '';
+  const hasData = vital1Info.hasData;
+  const showNoData = vitalBoxesToAlwaysShow.includes(label);
+  const vital1WaveformVal: number = vital1Info.hasData
+    ? state[vital1].waveformVal
     : 0;
 
   return (
@@ -57,8 +154,8 @@ export default function VitalBox({
         </div>
         <div className={`${styles.monitorVitalBoxVital} ${colorClassName}`}>
           <div className={styles.monitorVitalBoxAlarm}><BsBellSlashFill /></div>
-          <div className={styles[`monitorVitalBox${label}1`]}>{vital1Str}</div>
-          {vital2Val !== null && <div className={styles[`monitorVitalBox${label}2`]}>{vital2Str}</div>}
+          <div className={styles[`monitorVitalBox${label}1`]}>{vital1Info.valueStr}</div>
+          {vital2Info !== null && <div className={styles[`monitorVitalBox${label}2`]}>{vital2Info.valueStr}</div>}
           {vital3Val !== null && <div className={styles[`monitorVitalBox${label}3`]}>{vital3Str}</div>}
           {label === 'SpO2' && <div className={styles.monitorVitalBoxSpO2Bar}>
             <div className={styles.monitorVitalBoxSpO2BarFill} style={{

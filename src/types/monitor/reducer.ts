@@ -1,3 +1,12 @@
+// Sensors that can be connected
+export const monitorSensors = [
+  'SpO2',
+  'ETCO2',
+  '3-lead',
+  '12-lead',
+  'BP',
+] as const;
+
 // Types for the individual vital boxes
 export const vitalTypes = [
   'HR',
@@ -11,7 +20,6 @@ interface VitalState {
   value: number;
   waveformVal: number;
   hasWaveform: boolean;
-  hasData: boolean;
 }
 
 // Types for the waveform box states
@@ -20,7 +28,6 @@ export type WaveformBoxNames = 'waveform0' | 'waveform1' | 'waveform2';
 interface WaveformBoxState {
   data: (number | null)[];
   waveform: WaveformBoxTypes;
-  hasData: boolean;
 }
 
 export interface VitalGeneratorConfig {
@@ -63,6 +70,10 @@ export type MonitorState = {
 } & {
   [key in WaveformBoxNames]: WaveformBoxState;
 } & {
+  sensors: {
+    [key in typeof monitorSensors[number]]: boolean;
+  };
+
   lastTick: number;
   lastTickTime: number;
 
@@ -77,6 +88,12 @@ export type MonitorState = {
 }
 
 // Actions for the reducer
+interface SetSensorAction {
+  type: 'SetSensor';
+  sensor: typeof monitorSensors[number];
+  state: boolean;
+};
+
 interface SetVitalAction extends Partial<VitalState> {
   type: 'SetVital';
   vital: typeof vitalTypes[number];
@@ -102,7 +119,7 @@ interface SetWaveformGeneratorConfigAction extends Partial<
   waveform: 'co2' | 'spo2' | 'ekg';
 }
 
-export type MonitorAction = SetVitalAction | SetWaveformAction | SetTickAction
+export type MonitorAction = SetSensorAction | SetVitalAction | SetWaveformAction | SetTickAction
   | SetWaveformGeneratorStateAction<Co2WaveformGeneratorStages>
   | SetWaveformGeneratorStateAction<Spo2WaveformGeneratorStages>
   | SetWaveformGeneratorStateAction<LeadIIWaveformGeneratorStages>

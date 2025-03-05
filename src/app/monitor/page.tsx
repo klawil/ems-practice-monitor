@@ -130,43 +130,34 @@ function updateWaveformsOrSetTimeout(
           dataIdx++
         ) {
           // Check for real data generation
-          let hasRealData = false;
           nextValue = null;
-          if (
-            waveformState.hasData &&
-            generatorState !== null
-          ) {
-            switch (waveformState.waveform) {
-              case 'CO2':
-                [nextValue, generatorState] = CO2Generator.getNextValue(
-                  vitalGenerators.RR.get(),
-                  vitalGenerators.CO2.get(),
-                  state.co2GeneratorConfig,
-                  generatorState as MonitorState['co2GeneratorState'],
-                );
-                hasRealData = true;
-                break;
-              case 'SpO2':
-                [nextValue, generatorState] = Spo2Generator.getNextValue(
-                  vitalGenerators.HR.get(),
-                  vitalGenerators.SpO2.get(),
-                  state.spo2GeneratorConfig,
-                  generatorState as MonitorState['spo2GeneratorState'],
-                );
-                hasRealData = true;
-                break;
-              case 'II':
-                [nextValue, generatorState] = LeadIIGenerator.getNextValue(
-                  vitalGenerators.HR.get(),
-                  40,
-                  state.ekgGeneratorConfig,
-                  generatorState as MonitorState['leadIIGeneratorState'],
-                );
-                hasRealData = true;
-                break;
-            }
+          switch (waveformState.waveform) {
+            case 'CO2':
+              [nextValue, generatorState] = CO2Generator.getNextValue(
+                vitalGenerators.RR.get(),
+                vitalGenerators.CO2.get(),
+                state.co2GeneratorConfig,
+                generatorState as MonitorState['co2GeneratorState'],
+              );
+              break;
+            case 'SpO2':
+              [nextValue, generatorState] = Spo2Generator.getNextValue(
+                vitalGenerators.HR.get(),
+                vitalGenerators.SpO2.get(),
+                state.spo2GeneratorConfig,
+                generatorState as MonitorState['spo2GeneratorState'],
+              );
+              break;
+            case 'II':
+              [nextValue, generatorState] = LeadIIGenerator.getNextValue(
+                vitalGenerators.HR.get(),
+                40,
+                state.ekgGeneratorConfig,
+                generatorState as MonitorState['leadIIGeneratorState'],
+              );
+              break;
           }
-          if (!hasRealData) {
+          if (!state.sensors[waveformSpeedConfig.sensor]) {
             nextValue = tickDefaultValue(tickNum);
           }
           waveformData[dataIdx] = nextValue;
@@ -246,7 +237,6 @@ function updateWaveformsOrSetTimeout(
     // Generate the data for the vitals
     vitalTypes.forEach(vital => {
       // Don't change the vital if the waveform is not at baseline
-      const vitalState = state[vital];
       const waveformToCheck = vitalWaveformRestrctions[vital];
       if (
         waveformToCheck &&
