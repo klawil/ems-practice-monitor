@@ -4,6 +4,7 @@ import styles from "./waveform.module.css";
 import { Line } from 'react-chartjs-2';
 import { LinearScale, Chart, CategoryScale, PointElement, LineElement } from "chart.js";
 import { MonitorState } from "@/types/monitor/reducer";
+import { chartWaveformConfig } from "@/logic/monitor/waveformGenerator";
 
 Chart.register(LinearScale, CategoryScale, PointElement, LineElement);
 
@@ -20,6 +21,7 @@ export default function Waveform({
     ? getComputedStyle(document.documentElement)
       .getPropertyValue(`--monitor-${state.waveform.toLowerCase()}-waveform-color`)
     : 'red';
+  const waveformConfig = chartWaveformConfig[state.waveform];
   return (
     <div className={styles.waveform}>
       <Line
@@ -43,13 +45,13 @@ export default function Waveform({
           scales: {
             y: {
               display: false,
-              min: state.chartMin,
-              max: state.chartMax,
+              min: waveformConfig.chartMin,
+              max: waveformConfig.chartMax,
             },
             x: {
               display: false,
               min: 0,
-              max: 30 * 5,
+              max: 150 * waveformConfig.numSamplesMult,
             },
           },
           elements:{
@@ -71,7 +73,7 @@ export default function Waveform({
           },
         }}
       />
-      <span className={`${styles[`waveformLabel${state.waveform}`]} ${styles.waveformLabel}`}>{state.label}</span>
+      <span className={`${styles[`waveformLabel${state.waveform}`]} ${styles.waveformLabel}`}>{waveformConfig.label}</span>
     </div>
   );
 }

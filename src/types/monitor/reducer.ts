@@ -19,9 +19,6 @@ export type WaveformBoxNames = 'waveform0' | 'waveform1' | 'waveform2';
 interface WaveformBoxState {
   data: (number | null)[];
   waveform: WaveformBoxTypes;
-  label: string;
-  chartMax: number;
-  chartMin: number;
   hasData: boolean;
 }
 
@@ -42,19 +39,19 @@ export interface WaveformGeneratorState<PossibleStages extends string> {
 }
 
 // Types for each waveform generator
-type Co2WaveformGeneratorStages = 'inhale' | 'exhale-1' | 'exhale-2' | 'exhale-3';
+type Co2WaveformGeneratorStages = 'baseline' | 'exhale-1' | 'exhale-2' | 'exhale-3';
 interface Co2WaveformGeneratorConfig extends WaveformGeneratorConfig {
   startRounding: number;
   exhaleRatio: number;
 }
-type Spo2WaveformGeneratorStages = 'rise1' | 'fall1' | 'rise2' | 'fall2';
+type Spo2WaveformGeneratorStages = 'rise1' | 'fall1' | 'rise2' | 'fall2' | 'baseline';
 interface Spo2WaveformGeneratorConfig extends WaveformGeneratorConfig {
   a?: null;
 }
 interface EkgWaveformGeneratorConfig extends WaveformGeneratorConfig {
   a?: null;
 }
-type LeadIIWaveformGeneratorStages = 'p1' | 'p2' | 'pq' | 'q' | 'r' | 's' | 'st' | 't1' | 't2'
+type LeadIIWaveformGeneratorStages = 'p' | 'p2' | 'pq' | 'q' | 'r' | 's' | 's2' | 'st' | 't' | 't2'
   | 'baseline';
 
 // Overall state for the monitor

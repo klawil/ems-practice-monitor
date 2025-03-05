@@ -10,27 +10,47 @@ import { useReducer } from 'react';
 import { defaultMonitorState, stateReducer } from "@/logic/monitor/reducer";
 import { ActionDispatch } from "react";
 import { VitalGenerator } from "@/logic/monitor/vitalGenerator";
-import { CO2Generator, LeadIIGenerator, Spo2Generator } from "@/logic/monitor/waveformGenerator";
+import { chartWaveformConfig, CO2Generator, LeadIIGenerator, Spo2Generator } from "@/logic/monitor/waveformGenerator";
 import { MonitorAction, MonitorState, vitalTypes, WaveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
 
 const waveformSamples = 30 * 5; // 30Hz for 5s
 const noDataWaveformBlips = 30;
 const blipWidth = waveformSamples / noDataWaveformBlips;
-const tickDefaultValue = (tickNum: number) =>
-  Math.floor((tickNum - Math.floor(blipWidth / 2)) / blipWidth) % 2 === 0
+const tickDefaultValue = (tickNum: number, mult: number) =>
+  Math.floor((tickNum - Math.floor(blipWidth * mult / 2)) / blipWidth / mult) % 2 === 0
     ? null
     : 0;
 
 const waveformSpeeds: {
-  [key in WaveformBoxTypes]?: number;
+  [key in WaveformBoxTypes]?: {
+    updatesPerTick?: number;
+    samplesPerUpdate?: number;
+  };
 } = {
-  CO2: 0.5,
+  CO2: {
+    updatesPerTick: 0.5,
+    samplesPerUpdate: 1,
+  },
+  SpO2: {
+    samplesPerUpdate: 1,
+  },
+  II: {
+    samplesPerUpdate: 5,
+  },
 };
 const waveformsToVitals: {
   [key in WaveformBoxTypes]?: typeof vitalTypes[number];
 } = {
   SpO2: 'SpO2',
   CO2: 'CO2',
+};
+const vitalWaveformRestrctions: {
+  [key in typeof vitalTypes[number]]?: 'co2GeneratorState' | 'spo2GeneratorState' | 'leadIIGeneratorState';
+} = {
+  CO2: 'co2GeneratorState',
+  RR: 'co2GeneratorState',
+  HR: 'spo2GeneratorState',
+  SpO2: 'spo2GeneratorState',
 };
 
 const vitalBoxConfigs: VitalBoxPartialProps[] = [
@@ -86,7 +106,16 @@ function updateWaveformsOrSetTimeout(
         ...state[`waveform${i}` as WaveformBoxNames]
       };
       const waveformData = [ ...waveformState.data ];
-      const waveformSpeed = waveformSpeeds[waveformState.waveform] || 1;
+      const waveformSpeedConfig = chartWaveformConfig[waveformState.waveform] || {};
+      const waveformUpdatesPerTick = waveformSpeedConfig.updatesPerTick || 1;
+      const waveformSamplesPerUpdate = waveformSpeedConfig.numSamplesMult;
+      const maxWaveformTicks = 30 * 5;
+      const maxWaveformSamples = waveformSamplesPerUpdate * maxWaveformTicks;
+
+      // Expand the data if needed
+      for (let v = waveformData.length; v < maxWaveformSamples; v++) {
+        waveformData.push(null);
+      }
 
       let generatorState = null;
       let nextValue: number | null = null;
@@ -103,56 +132,62 @@ function updateWaveformsOrSetTimeout(
       }
 
       for (let t = 0; t < numTicks; t++) {
-        let tickNum = (lastTickNum + numTicks) * waveformSpeed;
+        let tickNum = (lastTickNum + t) * waveformUpdatesPerTick;
         if (tickNum !== Math.round(tickNum)) continue;
-        if (tickNum >= waveformData.length) tickNum -= waveformData.length;
-        if (tickNum >= waveformData.length) tickNum -= waveformData.length;
-        if (tickNum >= waveformData.length) {
-          console.error(`Bad tickNum (${waveformState.waveform}):`, tickNum, waveformData);
+        if (tickNum >= maxWaveformTicks) tickNum -= maxWaveformTicks;
+        if (tickNum >= maxWaveformTicks) tickNum -= maxWaveformTicks;
+        if (tickNum >= maxWaveformTicks) {
+          console.error(`Bad tickNum (${waveformState.waveform}):`, tickNum, maxWaveformTicks);
           continue;
         };
 
-        // Check for real data generation
-        let hasRealData = false;
-        nextValue = null;
-        if (
-          waveformState.hasData &&
-          generatorState !== null
+        for (
+          let dataIdx = tickNum * waveformSamplesPerUpdate;
+          dataIdx < (tickNum + 1) * waveformSamplesPerUpdate;
+          dataIdx++
         ) {
-          switch (waveformState.waveform) {
-            case 'CO2':
-              [nextValue, generatorState] = CO2Generator.getNextValue(
-                vitalGenerators.RR.get(),
-                vitalGenerators.CO2.get(),
-                state.co2GeneratorConfig,
-                generatorState as MonitorState['co2GeneratorState'],
-              );
-              hasRealData = true;
-              break;
-            case 'SpO2':
-              [nextValue, generatorState] = Spo2Generator.getNextValue(
-                vitalGenerators.HR.get(),
-                vitalGenerators.SpO2.get(),
-                state.spo2GeneratorConfig,
-                generatorState as MonitorState['spo2GeneratorState'],
-              );
-              hasRealData = true;
-              break;
-            case 'II':
-              [nextValue, generatorState] = LeadIIGenerator.getNextValue(
-                vitalGenerators.HR.get(),
-                40,
-                state.ekgGeneratorConfig,
-                generatorState as MonitorState['leadIIGeneratorState'],
-              );
-              hasRealData = true;
-              break;
+          // Check for real data generation
+          let hasRealData = false;
+          nextValue = null;
+          if (
+            waveformState.hasData &&
+            generatorState !== null
+          ) {
+            switch (waveformState.waveform) {
+              case 'CO2':
+                [nextValue, generatorState] = CO2Generator.getNextValue(
+                  vitalGenerators.RR.get(),
+                  vitalGenerators.CO2.get(),
+                  state.co2GeneratorConfig,
+                  generatorState as MonitorState['co2GeneratorState'],
+                );
+                hasRealData = true;
+                break;
+              case 'SpO2':
+                [nextValue, generatorState] = Spo2Generator.getNextValue(
+                  vitalGenerators.HR.get(),
+                  vitalGenerators.SpO2.get(),
+                  state.spo2GeneratorConfig,
+                  generatorState as MonitorState['spo2GeneratorState'],
+                );
+                hasRealData = true;
+                break;
+              case 'II':
+                [nextValue, generatorState] = LeadIIGenerator.getNextValue(
+                  vitalGenerators.HR.get(),
+                  40,
+                  state.ekgGeneratorConfig,
+                  generatorState as MonitorState['leadIIGeneratorState'],
+                );
+                hasRealData = true;
+                break;
+            }
           }
+          if (!hasRealData) {
+            nextValue = tickDefaultValue(tickNum, waveformSamplesPerUpdate);
+          }
+          waveformData[dataIdx] = nextValue;
         }
-        if (!hasRealData) {
-          nextValue = tickDefaultValue(tickNum);
-        }
-        waveformData[tickNum] = nextValue;
       }
 
       // Save the new generator state and vital waveform value (if applicable)
@@ -183,13 +218,19 @@ function updateWaveformsOrSetTimeout(
       }
 
       // Null out the blip worth of ticks
-      for (let t = 0; t < blipWidth / waveformSpeed; t += 1) {
-        let tickNum = (lastTickNum + numTicks + t + 1) * waveformSpeed;
-        if (tickNum !== Math.round(tickNum)) continue;
-        if (tickNum >= waveformData.length) tickNum -= waveformData.length;
-        if (tickNum >= waveformData.length) tickNum -= waveformData.length;
+      // Start at last dataIdx
+      // End at dataIdx + blipWidth * samplesPerUpdate
+      const blipStartIdx = Math.ceil((lastTickNum + numTicks) * waveformUpdatesPerTick) * waveformSamplesPerUpdate
+      for (
+        let dataIdx = blipStartIdx;
+        dataIdx <= blipStartIdx + blipWidth * waveformSamplesPerUpdate;
+        dataIdx++
+      ) {
+        let localIdx = dataIdx;
+        if (localIdx >= maxWaveformSamples) localIdx -= maxWaveformSamples;
+        if (localIdx >= maxWaveformSamples) localIdx -= maxWaveformSamples;
 
-        waveformData[tickNum] = null;
+        waveformData[localIdx] = null;
       }
 
       // Set the data
@@ -223,9 +264,10 @@ function updateWaveformsOrSetTimeout(
     vitalTypes.forEach(vital => {
       // Don't change the vital if the waveform is not at baseline
       const vitalState = state[vital];
+      const waveformToCheck = vitalWaveformRestrctions[vital];
       if (
-        typeof vitalState.waveformVal !== 'undefined' &&
-        vitalState.waveformVal !== 0
+        waveformToCheck &&
+        state[waveformToCheck].currentStage !== 'baseline'
       ) return;
 
       vitalGenerators[vital].increment(state[`${vital}GeneratorConfig`]);

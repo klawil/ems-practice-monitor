@@ -102,40 +102,31 @@ export const defaultMonitorState: MonitorState = {
     maxUpdateFreq: 60 * 5,
   },
   waveform0: {
-    data: Array.from(Array(waveformSamples), () => null),
+    data: Array.from(Array(waveformSamples * 4), () => null),
     waveform: 'II',
-    label: 'II x 1.0',
-    chartMin: -50,
-    chartMax: 50,
-    hasData: false,
+    hasData: true,
   },
   waveform1: {
     data: Array.from(Array(waveformSamples), () => null),
     waveform: 'SpO2',
-    label: 'SpO2',
-    chartMin: -20,
-    chartMax: 130,
     hasData: true,
   },
   waveform2: {
     data: Array.from(Array(waveformSamples), () => null),
     waveform: 'CO2',
-    label: 'CO2',
-    chartMin: -5,
-    chartMax: 70,
     hasData: true,
   },
   co2GeneratorConfig: {
-    noiseLevel: 0.05,
+    noiseLevel: 0.00,
     startRounding: 0.5,
     exhaleRatio: 0.5,
   },
   co2GeneratorState: {
-    currentStage: 'inhale',
+    currentStage: 'exhale-1',
     currentStageSamples: 0,
   },
   spo2GeneratorConfig: {
-    noiseLevel: 0.05,
+    noiseLevel: 0.00,
   },
   spo2GeneratorState: {
     currentStage: 'rise1',
@@ -146,9 +137,9 @@ export const defaultMonitorState: MonitorState = {
     permitBelow0: true,
   },
   leadIIGeneratorState: {
-    currentStage: 'baseline',
+    currentStage: 'p',
     currentStageSamples: 0,
-  }
+  },
 };
 
 export function stateReducer(state: MonitorState, action: MonitorAction): MonitorState {
