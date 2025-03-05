@@ -133,7 +133,6 @@ export const defaultMonitorState: MonitorState = {
   co2GeneratorState: {
     currentStage: 'inhale',
     currentStageSamples: 0,
-    // lastValue: 0,
   },
   spo2GeneratorConfig: {
     noiseLevel: 0.05,
@@ -141,7 +140,6 @@ export const defaultMonitorState: MonitorState = {
   spo2GeneratorState: {
     currentStage: 'rise1',
     currentStageSamples: 0,
-    // lastValue: 0,
   },
   ekgGeneratorConfig: {
     noiseLevel: 0.00,

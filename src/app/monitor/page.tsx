@@ -10,7 +10,7 @@ import { useReducer } from 'react';
 import { defaultMonitorState, stateReducer } from "@/logic/monitor/reducer";
 import { ActionDispatch } from "react";
 import { VitalGenerator } from "@/logic/monitor/vitalGenerator";
-import { CO2Generator, Spo2Generator } from "@/logic/monitor/waveformGenerator";
+import { CO2Generator, LeadIIGenerator, Spo2Generator } from "@/logic/monitor/waveformGenerator";
 import { MonitorAction, MonitorState, vitalTypes, WaveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
 
 const waveformSamples = 30 * 5; // 30Hz for 5s
@@ -97,6 +97,9 @@ function updateWaveformsOrSetTimeout(
         case 'SpO2':
           generatorState = state.spo2GeneratorState;
           break;
+        case 'II':
+          generatorState = state.leadIIGeneratorState;
+          break;
       }
 
       for (let t = 0; t < numTicks; t++) {
@@ -135,6 +138,15 @@ function updateWaveformsOrSetTimeout(
               );
               hasRealData = true;
               break;
+            case 'II':
+              [nextValue, generatorState] = LeadIIGenerator.getNextValue(
+                vitalGenerators.HR.get(),
+                40,
+                state.ekgGeneratorConfig,
+                generatorState as MonitorState['leadIIGeneratorState'],
+              );
+              hasRealData = true;
+              break;
           }
         }
         if (!hasRealData) {
@@ -157,6 +169,13 @@ function updateWaveformsOrSetTimeout(
             dispatch({
               type: 'SetWaveformGeneratorState',
               waveform: 'spo2',
+              ...generatorState,
+            });
+            break;
+          case 'II':
+            dispatch({
+              type: 'SetWaveformGeneratorState',
+              waveform: 'leadII',
               ...generatorState,
             });
             break;
@@ -202,6 +221,13 @@ function updateWaveformsOrSetTimeout(
 
     // Generate the data for the vitals
     vitalTypes.forEach(vital => {
+      // Don't change the vital if the waveform is not at baseline
+      const vitalState = state[vital];
+      if (
+        typeof vitalState.waveformVal !== 'undefined' &&
+        vitalState.waveformVal !== 0
+      ) return;
+
       vitalGenerators[vital].increment(state[`${vital}GeneratorConfig`]);
       if (vitalGenerators[vital].get() !== state[vital].value) {
         dispatch({
