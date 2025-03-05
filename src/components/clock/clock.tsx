@@ -1,3 +1,5 @@
+'use client';
+
 export default function Clock() {
   const dateObj = new Date();
   const hour = dateObj.getHours().toString().padStart(2, '0');
