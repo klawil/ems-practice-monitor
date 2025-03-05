@@ -16,28 +16,11 @@ import { MonitorAction, MonitorState, vitalTypes, WaveformBoxNames, WaveformBoxT
 const waveformSamples = 30 * 5; // 30Hz for 5s
 const noDataWaveformBlips = 30;
 const blipWidth = waveformSamples / noDataWaveformBlips;
-const tickDefaultValue = (tickNum: number, mult: number) =>
-  Math.floor((tickNum - Math.floor(blipWidth * mult / 2)) / blipWidth / mult) % 2 === 0
+const tickDefaultValue = (tickNum: number) =>
+  Math.floor((tickNum - Math.floor(blipWidth / 2)) / blipWidth) % 2 === 0
     ? null
     : 0;
 
-const waveformSpeeds: {
-  [key in WaveformBoxTypes]?: {
-    updatesPerTick?: number;
-    samplesPerUpdate?: number;
-  };
-} = {
-  CO2: {
-    updatesPerTick: 0.5,
-    samplesPerUpdate: 1,
-  },
-  SpO2: {
-    samplesPerUpdate: 1,
-  },
-  II: {
-    samplesPerUpdate: 5,
-  },
-};
 const waveformsToVitals: {
   [key in WaveformBoxTypes]?: typeof vitalTypes[number];
 } = {
@@ -184,7 +167,7 @@ function updateWaveformsOrSetTimeout(
             }
           }
           if (!hasRealData) {
-            nextValue = tickDefaultValue(tickNum, waveformSamplesPerUpdate);
+            nextValue = tickDefaultValue(tickNum);
           }
           waveformData[dataIdx] = nextValue;
         }

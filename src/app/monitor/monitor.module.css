@@ -11,12 +11,13 @@
 
 .monitorVitalSide {
   display: grid;
-  grid-template-rows: repeat(4, var(--monitor-vital-box-height));
+  grid-template-rows: repeat(4, 1fr);
+  border-right: 1px solid var(--monitor-title-bg-color);
 }
 
 .monitorWaveformSide {
   display: grid;
-  grid-template-rows: var(--monitor-vital-box-title-height) repeat(3, auto);
+  grid-template-rows: var(--monitor-vital-box-title-height) repeat(3, 1fr);
 }
 
 .monitorTimeBar {
