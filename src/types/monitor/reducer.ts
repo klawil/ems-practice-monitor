@@ -11,6 +11,7 @@ interface VitalState {
   value: number;
   waveformVal: number;
   hasWaveform: boolean;
+  hasData: boolean;
 }
 
 // Types for the waveform box states

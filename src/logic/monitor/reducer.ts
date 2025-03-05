@@ -39,6 +39,7 @@ export const defaultMonitorState: MonitorState = {
     value: 100,
     waveformVal: 0,
     hasWaveform: false,
+    hasData: false,
   },
   HRGeneratorConfig: {
     targetValue: 90,
@@ -50,6 +51,7 @@ export const defaultMonitorState: MonitorState = {
     value: 95,
     waveformVal: 0,
     hasWaveform: true,
+    hasData: true,
   },
   SpO2GeneratorConfig: {
     targetValue: 95,
@@ -61,6 +63,7 @@ export const defaultMonitorState: MonitorState = {
     value: 18,
     waveformVal: 0,
     hasWaveform: true,
+    hasData: false,
   },
   RRGeneratorConfig: {
     targetValue: 16,
@@ -72,6 +75,7 @@ export const defaultMonitorState: MonitorState = {
     value: 35,
     waveformVal: 0,
     hasWaveform: true,
+    hasData: false,
   },
   CO2GeneratorConfig: {
     targetValue: 40,
@@ -83,6 +87,7 @@ export const defaultMonitorState: MonitorState = {
     value: 150,
     waveformVal: 0,
     hasWaveform: false,
+    hasData: true,
   },
   SBPGeneratorConfig: {
     targetValue: 120,
@@ -94,6 +99,7 @@ export const defaultMonitorState: MonitorState = {
     value: 100,
     waveformVal: 0,
     hasWaveform: false,
+    hasData: true,
   },
   DBPGeneratorConfig: {
     targetValue: 80,
@@ -104,17 +110,17 @@ export const defaultMonitorState: MonitorState = {
   waveform0: {
     data: Array.from(Array(waveformSamples * 4), () => null),
     waveform: 'II',
-    hasData: true,
+    hasData: false,
   },
   waveform1: {
     data: Array.from(Array(waveformSamples), () => null),
     waveform: 'SpO2',
-    hasData: true,
+    hasData: false,
   },
   waveform2: {
     data: Array.from(Array(waveformSamples), () => null),
     waveform: 'CO2',
-    hasData: true,
+    hasData: false,
   },
   co2GeneratorConfig: {
     noiseLevel: 0.00,

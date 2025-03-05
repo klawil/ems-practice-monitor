@@ -1,6 +1,5 @@
 .monitorVitalBox {
   width: var(--monitor-vital-box-width);
-  height: var(--monitor-vital-box-height);
   margin: 0;
   padding: 0;
 }
@@ -29,7 +28,6 @@
   height: var(--monitor-vital-box-vital-height);
   width: 100%;
   position: relative;
-  border-right: 1px solid var(--monitor-title-bg-color);
   font-weight: bold;
 }
 
@@ -39,11 +37,10 @@
   position: absolute;
   top: var(--vital-box-padding-default);
   left: var(--vital-box-padding-default);
-  background-color: white;
 }
 
 .monitorVitalBoxHR1 {
-  font-size: 55px;
+  font-size: 50px;
   line-height: 45px;
   text-align: right;
   position: absolute;
@@ -56,7 +53,7 @@
 .monitorVitalBoxBP1,
 .monitorVitalBoxBP2
 {
-  font-size: 50px;
+  font-size: 45px;
   line-height: 40px;
   text-align: right;
   position: absolute;
