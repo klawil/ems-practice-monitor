@@ -33,6 +33,7 @@ function setWaveformColors(newState: MonitorState): MonitorState {
 }
 
 export const defaultMonitorState: MonitorState = {
+  hasManager: false,
   sensors: {
     SpO2: false,
     ETCO2: false,
@@ -49,9 +50,9 @@ export const defaultMonitorState: MonitorState = {
   },
   HRGeneratorConfig: {
     targetValue: 90,
-    targetRange: 5,
-    maxChangePerS: 5,
-    maxUpdateFreq: 5,
+    targetRange: 3,
+    maxChangePerS: 2,
+    maxUpdateFreq: 1,
   },
   SpO2: {
     value: 95,
@@ -60,8 +61,8 @@ export const defaultMonitorState: MonitorState = {
   },
   SpO2GeneratorConfig: {
     targetValue: 95,
-    targetRange: 3,
-    maxChangePerS: 5,
+    targetRange: 2,
+    maxChangePerS: 2,
     maxUpdateFreq: 1,
   },
   RR: {
@@ -148,6 +149,19 @@ export const defaultMonitorState: MonitorState = {
 
 export function stateReducer(state: MonitorState, action: MonitorAction): MonitorState {
   switch (action.type) {
+    case 'SetHasManager': {
+      return {
+        ...state,
+        hasManager: action.hasManager,
+      };
+    }
+    case 'SetMonitorId': {
+      return {
+        ...state,
+        monitorId: action.id,
+      };
+    }
+
     case 'SetSensor': {
       const {
         type: _, // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -159,6 +173,34 @@ export function stateReducer(state: MonitorState, action: MonitorAction): Monito
         sensors: {
           ...state.sensors,
           [sensor]: sensorState,
+        },
+      };
+    }
+    case 'SetWaveformGeneratorConfig': {
+      const {
+        type: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        waveform,
+        ...data
+      } = action;
+      return {
+        ...state,
+        [`${waveform}GeneratorConfig`]: {
+          ...state[`${waveform}GeneratorConfig`],
+          ...data,
+        },
+      };
+    }
+    case 'SetVitalGeneratorConfig': {
+      const {
+        type: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        vital,
+        ...data
+      } = action;
+      return {
+        ...state,
+        [`${vital}GeneratorConfig`]: {
+          ...state[`${vital}GeneratorConfig`],
+          ...data,
         },
       };
     }
@@ -201,20 +243,6 @@ export function stateReducer(state: MonitorState, action: MonitorAction): Monito
         ...data,
       };
       return setWaveformColors(newState);
-    }
-    case 'SetWaveformGeneratorConfig': {
-      const {
-        type: _, // eslint-disable-line @typescript-eslint/no-unused-vars
-        waveform,
-        ...data
-      } = action;
-      return {
-        ...state,
-        [`${waveform}GeneratorConfig`]: {
-          ...state[`${waveform}GeneratorConfig`],
-          ...data,
-        },
-      };
     }
     case 'SetWaveformGeneratorState': {
       const {

@@ -51,6 +51,13 @@ class WaveformGenerator<
       throw new Error(`Invalid stage: ${newState.currentStage}`);
     }
 
+    // Exit to baseline if the rate is <= 0
+    if (rate <= 0) {
+      newState.currentStage = 'baseline' as PossibleStages;
+      newState.currentStageSamples = 0;
+      return [0, newState];
+    }
+
     // Increment the sample counter
     newState.currentStageSamples++;
 

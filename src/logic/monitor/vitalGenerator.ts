@@ -1,14 +1,15 @@
 import { VitalGeneratorConfig } from "@/types/monitor/reducer";
 
 export class VitalGenerator {
-  private currentValue: number;
+  private currentValue: number = -1;
   private lastUpdate: number = 0;
 
-  constructor(initialValue: number) {
-    this.currentValue = initialValue;
-  }
-
   increment(config: VitalGeneratorConfig) {
+    // Set the current value on the first run
+    if (this.currentValue === -1) {
+      this.currentValue = config.targetValue;
+    }
+
     const nowTime = Date.now();
     if (nowTime < this.lastUpdate + Math.ceil(1000 * config.maxUpdateFreq)) return;
 

@@ -74,6 +74,8 @@ export type MonitorState = {
     [key in typeof monitorSensors[number]]: boolean;
   };
 
+  monitorId?: string;
+  hasManager: boolean;
   lastTick: number;
   lastTickTime: number;
 
@@ -87,13 +89,32 @@ export type MonitorState = {
   leadIIGeneratorState: WaveformGeneratorState<LeadIIWaveformGeneratorStages>;
 }
 
-// Actions for the reducer
+/** Actions that should come from server communications **/
+interface SetHasManagerAction {
+  type: 'SetHasManager',
+  hasManager: boolean;
+}
 interface SetSensorAction {
   type: 'SetSensor';
   sensor: typeof monitorSensors[number];
   state: boolean;
 };
+interface SetWaveformGeneratorConfigAction extends Partial<
+  Co2WaveformGeneratorConfig & Spo2WaveformGeneratorConfig & EkgWaveformGeneratorConfig
+> {
+  type: 'SetWaveformGeneratorConfig';
+  waveform: 'co2' | 'spo2' | 'ekg';
+}
+interface SetVitalGeneratorConfigAction extends Partial<VitalGeneratorConfig> {
+  type: 'SetVitalGeneratorConfig';
+  vital: typeof vitalTypes[number];
+}
 
+/** Actions that should come from the monitor UI **/
+interface SetMonitorIdAction {
+  type: 'SetMonitorId';
+  id: string;
+}
 interface SetVitalAction extends Partial<VitalState> {
   type: 'SetVital';
   vital: typeof vitalTypes[number];
@@ -112,15 +133,10 @@ interface SetWaveformGeneratorStateAction<PossibleStages extends string>
   type: 'SetWaveformGeneratorState';
   waveform: 'co2' | 'spo2' | 'leadII';
 }
-interface SetWaveformGeneratorConfigAction extends Partial<
-  Co2WaveformGeneratorConfig & Spo2WaveformGeneratorConfig & EkgWaveformGeneratorConfig
-> {
-  type: 'SetWaveformGeneratorConfig';
-  waveform: 'co2' | 'spo2' | 'ekg';
-}
 
 export type MonitorAction = SetSensorAction | SetVitalAction | SetWaveformAction | SetTickAction
   | SetWaveformGeneratorStateAction<Co2WaveformGeneratorStages>
   | SetWaveformGeneratorStateAction<Spo2WaveformGeneratorStages>
   | SetWaveformGeneratorStateAction<LeadIIWaveformGeneratorStages>
-  | SetWaveformGeneratorConfigAction;
+  | SetMonitorIdAction
+  | SetWaveformGeneratorConfigAction | SetVitalGeneratorConfigAction | SetHasManagerAction;
