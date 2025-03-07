@@ -21,4 +21,5 @@
 }
 .waveformLabelCO2 {
   color: var(--monitor-co2-waveform-color);
+  top: calc(50% - 13px / 2);
 }

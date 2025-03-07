@@ -24,7 +24,7 @@ interface VitalState {
 
 // Types for the waveform box states
 export type WaveformBoxTypes = 'SpO2' | 'CO2' | 'II' | 'I' | 'III';
-export type WaveformBoxNames = 'waveform0' | 'waveform1' | 'waveform2';
+export const waveformBoxNames = ['waveform0', 'waveform1', 'waveform2'] as const;
 interface WaveformBoxState {
   data: (number | null)[];
   waveform: WaveformBoxTypes;
@@ -68,7 +68,7 @@ export type MonitorState = {
 } & {
   [key in `${typeof vitalTypes[number]}GeneratorConfig`]: VitalGeneratorConfig;
 } & {
-  [key in WaveformBoxNames]: WaveformBoxState;
+  [key in typeof waveformBoxNames[number]]: WaveformBoxState;
 } & {
   sensors: {
     [key in typeof monitorSensors[number]]: boolean;

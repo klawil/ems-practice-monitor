@@ -11,15 +11,15 @@ import { defaultMonitorState, stateReducer } from "@/logic/monitor/reducer";
 import { ActionDispatch } from "react";
 import { VitalGenerator } from "@/logic/monitor/vitalGenerator";
 import { chartWaveformConfig, CO2Generator, LeadIIGenerator, Spo2Generator } from "@/logic/monitor/waveformGenerator";
-import { MonitorAction, MonitorState, vitalTypes, WaveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
+import { MonitorAction, MonitorState, vitalTypes, waveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
 
 const waveformSamples = 30 * 5; // 30Hz for 5s
 const noDataWaveformBlips = 30;
 const blipWidth = waveformSamples / noDataWaveformBlips;
-const tickDefaultValue = (tickNum: number) =>
+const tickDefaultValue = (tickNum: number, baseline: number = 0) =>
   Math.floor((tickNum - Math.floor(blipWidth / 2)) / blipWidth) % 2 === 0
     ? null
-    : 0;
+    : baseline;
 
 const waveformsToVitals: {
   [key in WaveformBoxTypes]?: typeof vitalTypes[number];
@@ -80,13 +80,13 @@ function updateWaveformsOrSetTimeout(
   function updateWaveforms() {
     const nowTime = Date.now();
     const lastTickNum = state.lastTick;
-    const numTicks = state.lastTickTime > 0
+    const numTicks = state.lastTickTime > 0 && Math.round((nowTime - state.lastTickTime) / tickTime) <= 30
       ? Math.round((nowTime - state.lastTickTime) / tickTime)
       : 1;
 
     for (let i = 0; i < 3; i++) {
       const waveformState = {
-        ...state[`waveform${i}` as WaveformBoxNames]
+        ...state[`waveform${i}` as typeof waveformBoxNames[number]]
       };
       const waveformData = [ ...waveformState.data ];
       const waveformSpeedConfig = chartWaveformConfig[waveformState.waveform] || {};
@@ -157,8 +157,14 @@ function updateWaveformsOrSetTimeout(
               );
               break;
           }
-          if (!state.sensors[waveformSpeedConfig.sensor]) {
-            nextValue = tickDefaultValue(tickNum);
+          if (
+            !state.sensors[waveformSpeedConfig.sensor] ||
+            nextValue === null
+          ) {
+            nextValue = tickDefaultValue(
+              tickNum,
+              Math.round((waveformSpeedConfig.chartMax + waveformSpeedConfig.chartMin) / 2)
+            );
           }
           waveformData[dataIdx] = nextValue;
         }
@@ -272,13 +278,41 @@ export default function Monitor() {
     state,
   ]);
 
+  useEffect(() => {
+    setTimeout(() => dispatch({
+      type: 'SetSensor',
+      sensor: 'SpO2',
+      state: true,
+    }), 3000);
+    setTimeout(() => dispatch({
+      type: 'SetSensor',
+      sensor: '3-lead',
+      state: true,
+    }), 6000);
+    setTimeout(() => dispatch({
+      type: 'SetSensor',
+      sensor: 'ETCO2',
+      state: true,
+    }), 9000);
+    setTimeout(() => dispatch({
+      type: 'SetSensor',
+      sensor: 'BP',
+      state: true,
+    }), 12000);
+    setTimeout(() => dispatch({
+      type: 'SetSensor',
+      sensor: '3-lead',
+      state: false,
+    }), 15000);
+  }, []);
+
   const vitalBoxes = vitalBoxConfigs.map((config, i) => <VitalBox
     {...config}
     state={state}
     key={i}
   />);
   const waveforms = Array.from(Array(numWaveforms), (_, i) => <Waveform
-    state={state[`waveform${i}` as WaveformBoxNames]}
+    state={state[`waveform${i}` as typeof waveformBoxNames[number]]}
     key={i}
   />);
 
@@ -293,6 +327,7 @@ export default function Monitor() {
         <div className={styles.monitorWaveformSide}>
           <div className={styles.monitorTimeBar}><Clock /></div>
           {waveforms}
+          <div></div>
         </div>
       </div>
     </Container>

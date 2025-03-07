@@ -85,7 +85,7 @@
   line-height: 16px;
   text-align: right;
   position: absolute;
-  top: calc(1.5 * var(--vital-box-padding-default) + 20px);
+  top: calc(1.5 * var(--vital-box-padding-default) + 25px);
   left: var(--vital-box-padding-default);
   width: 24px;
 }
@@ -125,4 +125,8 @@
 
 .monitorVitalBoxCO2 {
   color: var(--monitor-co2-waveform-color);
+}
+
+.monitorVitalBoxCardiac {
+  color: var(--monitor-i-waveform-color);
 }

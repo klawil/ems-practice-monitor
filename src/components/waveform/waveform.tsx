@@ -27,7 +27,7 @@ export default function Waveform({
       <Line
         updateMode="none"
         width={waveformWidth}
-        height={153}
+        height={146}
         data={{
           labels: state.data.map((_, i) => i),
           datasets: [
@@ -47,6 +47,7 @@ export default function Waveform({
               display: false,
               min: waveformConfig.chartMin,
               max: waveformConfig.chartMax,
+              ...(waveformConfig.scaleY || {}),
             },
             x: {
               display: false,

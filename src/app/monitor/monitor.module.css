@@ -17,7 +17,7 @@
 
 .monitorWaveformSide {
   display: grid;
-  grid-template-rows: var(--monitor-vital-box-title-height) repeat(3, 1fr);
+  grid-template-rows: var(--monitor-vital-box-title-height) repeat(3, 1fr) var(--monitor-vital-box-title-height);
 }
 
 .monitorTimeBar {

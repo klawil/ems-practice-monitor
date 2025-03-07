@@ -1,4 +1,4 @@
-import { monitorSensors, MonitorState, vitalTypes } from "@/types/monitor/reducer";
+import { monitorSensors, MonitorState, vitalTypes, waveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
 import styles from "./vital-box.module.css";
 import { BsBellSlashFill } from "react-icons/bs";
 
@@ -19,44 +19,49 @@ interface VitalBoxProps extends VitalBoxPartialProps {
 const vitalTypeRequiredSensor: {
   [key in typeof vitalTypes[number]]: {
     sensor?: typeof monitorSensors[number];
+    waveforms?: WaveformBoxTypes[];
     colorString?: string;
   }[];
 } = {
   HR: [
     {
       sensor: '3-lead',
+      waveforms: ['I', 'II', 'III'],
       colorString: 'Cardiac',
     },
     {
       sensor: '12-lead',
+      waveforms: ['I', 'II', 'III'],
       colorString: 'Cardiac',
     },
     {
       sensor: 'SpO2',
+      waveforms: ['SpO2'],
       colorString: 'SpO2',
     },
     {
+      waveforms: ['I', 'II', 'III'],
       colorString: 'Cardiac',
     },
   ],
   SpO2: [
     {
       sensor: 'SpO2',
-      colorString: 'SpO2',
-    },
-    {
+      waveforms: ['SpO2'],
       colorString: 'SpO2',
     },
   ],
   CO2: [
     {
       sensor: 'ETCO2',
+      waveforms: ['CO2'],
       colorString: 'CO2',
     },
   ],
   RR: [
     {
       sensor: 'ETCO2',
+      waveforms: ['CO2'],
       colorString: 'CO2',
     },
   ],
@@ -86,6 +91,7 @@ interface VitalCurrentState {
 function getVitalInformation(
   state: MonitorState,
   vital: typeof vitalTypes[number],
+  activeWaveforms: WaveformBoxTypes[],
 ): VitalCurrentState {
   const returnVal: VitalCurrentState = {
     hasData: false,
@@ -103,7 +109,26 @@ function getVitalInformation(
     ) {
       returnVal.hasData = typeof sensorColorInfo.sensor !== 'undefined'
         && state.sensors[sensorColorInfo.sensor];
-      returnVal.colorClass = sensorColorInfo.colorString || null;
+      
+      // Determine if a required waveform is shown
+      if (
+        sensorColorInfo.waveforms &&
+        sensorColorInfo.colorString
+      ) {
+        if (vital === 'HR') {
+          // console.log(sensorColorInfo, activeWaveforms);
+        }
+        let isActiveWaveform = false;
+        for (let i = 0; i < sensorColorInfo.waveforms.length; i++) {
+          if (activeWaveforms.includes(sensorColorInfo.waveforms[i])) {
+            isActiveWaveform = true;
+            break;
+          }
+        }
+        if (isActiveWaveform) {
+          returnVal.colorClass = sensorColorInfo.colorString || null;
+        }
+      }
       break;
     }
   }
@@ -124,10 +149,13 @@ export default function VitalBox({
   vital2,
   state,
 }: VitalBoxProps) {
+  // Get the active waveform types
+  const activeWaveforms = waveformBoxNames.map(wave => state[wave].waveform);
+
   // Get the vital information
-  const vital1Info = getVitalInformation(state, vital1);
+  const vital1Info = getVitalInformation(state, vital1, activeWaveforms);
   const vital2Info = vital2
-    ? getVitalInformation(state, vital2)
+    ? getVitalInformation(state, vital2, activeWaveforms)
     : null;
   const vital3Val: number | null = vital2 === 'DBP' && vital1Info.hasData && vital2Info && vital2Info.hasData
     ? Math.round((2 * vital2Info.value + vital1Info.value) / 3)

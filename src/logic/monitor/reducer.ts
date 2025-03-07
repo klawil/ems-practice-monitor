@@ -1,4 +1,4 @@
-import { MonitorAction, MonitorState, vitalTypes, WaveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
+import { MonitorAction, MonitorState, vitalTypes, waveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
 
 const waveformSamples = 150; // 5s at 30Hz or 10s at 15Hz
 
@@ -13,7 +13,7 @@ const vitalTypeToWaveform: {
 
 function setWaveformColors(newState: MonitorState): MonitorState {
   const waveformTypes = Array.from(Array(3), (_, i) =>
-    newState[`waveform${i}` as WaveformBoxNames].waveform);
+    newState[`waveform${i}` as typeof waveformBoxNames[number]].waveform);
   (Object.keys(vitalTypeToWaveform) as (typeof vitalTypes[number])[])
     .forEach(vital => {
       const hasWaveform = waveformTypes

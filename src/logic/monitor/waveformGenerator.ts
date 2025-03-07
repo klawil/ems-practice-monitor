@@ -1,4 +1,5 @@
 import { monitorSensors, MonitorState, WaveformBoxTypes, WaveformGeneratorConfig, WaveformGeneratorState } from "@/types/monitor/reducer";
+import { ScaleChartOptions } from "chart.js";
 
 type WaveformStageConfigs<
   PossibleStages extends string,
@@ -165,6 +166,7 @@ export const chartWaveformConfig: {
     updatesPerTick: number;
     label: string;
     sensor: typeof monitorSensors[number];
+    scaleY?: Partial<ScaleChartOptions<"line">['scales']['y']>;
   };
 } = {
   SpO2: {
@@ -182,6 +184,29 @@ export const chartWaveformConfig: {
     label: 'CO2',
     updatesPerTick: 0.5,
     sensor: 'ETCO2',
+    scaleY: {
+      display: true,
+      position: 'right',
+      grid: {
+        display: false,
+      },
+      ticks: {
+        color: 'rgb(240, 211, 145)',
+        align: 'inner',
+        crossAlign: 'far',
+        includeBounds: false,
+        stepSize: 10,
+        callback: (value, idx, ticks) => {
+          if (value === 0 || value === 50) {
+            return value;
+          }
+          return '';
+        },
+        // major: {
+        //   enabled: true,
+        // },
+      },
+    } as Partial<ScaleChartOptions<"line">['scales']['y']>,
   },
   I: {
     chartMin: -50,
