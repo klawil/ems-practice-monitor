@@ -45,7 +45,7 @@ export function stateReducer(state: ManagerState, action: ManagerAction): Manage
       };
     case 'SetVitalGeneratorConfigStaged': {
       const {
-        action: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        action: _,
         vital,
         ...data
       } = action;
@@ -59,7 +59,7 @@ export function stateReducer(state: ManagerState, action: ManagerAction): Manage
     }
     case 'SetWaveformGeneratorConfigStaged': {
       const {
-        action: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        action: _,
         waveform,
         ...data
       } = action;

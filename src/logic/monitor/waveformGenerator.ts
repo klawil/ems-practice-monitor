@@ -204,7 +204,7 @@ export const chartWaveformConfig: {
         crossAlign: 'far',
         includeBounds: false,
         stepSize: 10,
-        callback: (value, idx, ticks) => {
+        callback: (value, idx, ticks) => { // eslint-disable-line @typescript-eslint/no-unused-vars
           if (value === 0 || value === 50) {
             return value;
           }

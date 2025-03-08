@@ -23,7 +23,7 @@ function useQueue<T>(initialValue: T[] = []) {
     setQueueMirror([ ...rest ]);
 
     return item;
-  }, [queue]);
+  }, [queue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const add = useCallback((item: T) => {
     queueRef.current.push(item);
@@ -103,7 +103,7 @@ export function useMessaging(
       controller.abort();
       ref.current = null;
     };
-  }, []);
+  }, [addMessage]);
 
   const sendMessage = useCallback((message: ClientWebsocketMessage) => {
     if (!ref.current || ref.current.readyState !== ref.current.OPEN) {

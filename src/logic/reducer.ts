@@ -83,7 +83,7 @@ export function defaultReducer(state: SharedState, action: ServerMonitorActions)
     }
     case 'SetVitalGeneratorConfig': {
       const {
-        action: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        action: _,
         vital,
         ...data
       } = action;
@@ -97,7 +97,7 @@ export function defaultReducer(state: SharedState, action: ServerMonitorActions)
     }
     case 'SetWaveformGeneratorConfig': {
       const {
-        action: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        action: _,
         waveform,
         ...data
       } = action;

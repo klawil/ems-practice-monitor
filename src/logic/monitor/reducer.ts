@@ -68,7 +68,7 @@ export function stateReducer(state: MonitorState, action: MonitorAction): Monito
 
     case 'SetVital': {
       const {
-        action: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        action: _,
         vital,
         ...data
       } = action;
@@ -82,7 +82,7 @@ export function stateReducer(state: MonitorState, action: MonitorAction): Monito
     }
     case 'SetWaveform': {
       const {
-        action: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        action: _,
         index,
         ...data
       } = action;
@@ -96,7 +96,7 @@ export function stateReducer(state: MonitorState, action: MonitorAction): Monito
     }
     case 'SetTick': {
       const {
-        action: _,  // eslint-disable-line @typescript-eslint/no-unused-vars
+        action: _,
         ...data
       } = action;
       return {
@@ -106,7 +106,7 @@ export function stateReducer(state: MonitorState, action: MonitorAction): Monito
     }
     case 'SetWaveformGeneratorState': {
       const {
-        action: _, // eslint-disable-line @typescript-eslint/no-unused-vars
+        action: _,
         waveform,
         ...data
       } = action;
