@@ -58,8 +58,6 @@ export default function ManagerWaveform({
     });
   }
 
-  console.log(waveform, state[`${waveform}GeneratorConfigStaged`]);
-
   const hasStagedChanges = Object.keys(state[`${waveform}GeneratorConfigStaged`])
     .filter(k => typeof state[`${waveform}GeneratorConfigStaged`][k as keyof typeof config.keys] !== 'undefined')
     .length > 0;

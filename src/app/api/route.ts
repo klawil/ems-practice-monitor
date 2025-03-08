@@ -26,89 +26,8 @@ export async function SOCKET(
   function sendMessage(message: ServerWebsocketMessage, recipient?: WebSocket) {
     (recipient || client).send(JSON.stringify(message));
   }
-  
-  client.on('message', (messageRaw) => {
-    try {
-      const message = JSON.parse(messageRaw.toString()) as ClientWebsocketMessage;
-      console.log(message);
-      if (
-        message.action &&
-        message.action === 'join'
-      ) {
-        if (message.id === monitorId) return;
-        clientType = message.clientType;
-        switch (clientType) {
-          case 'monitor': {
-            if (typeof monitorManagerCache[message.id] !== 'undefined') {
-              sendMessage({
-                action: 'invalid-id',
-              });
-              return;
-            }
 
-            monitorId = message.id;
-            monitorManagerCache[message.id] = {
-              monitor: client,
-            };
-            break;
-          }
-          case 'manager': {
-            if (
-              typeof monitorManagerCache[message.id] === 'undefined' ||
-              typeof monitorManagerCache[message.id].manager !== 'undefined'
-            ) {
-              sendMessage({
-                action: 'invalid-id',
-              });
-              break;
-            }
-
-            monitorId = message.id;
-            clientType = 'manager';
-            monitorManagerCache[message.id].manager = client;
-            sendMessage({
-              action: 'SetConnected',
-              state: true,
-            }, monitorManagerCache[message.id].monitor);
-            sendMessage({
-              action: 'SetConnected',
-              state: true,
-            });
-            break;
-          }
-        }
-
-        console.log('RECAP');
-        Object.keys(monitorManagerCache).forEach(id =>
-          console.log(`- Monitor ${id} - ${typeof monitorManagerCache[id].manager !== 'undefined'}`)
-        );
-      } else if (monitorId) {
-        // Find the client to send the message to
-        if (typeof monitorManagerCache[monitorId] === 'undefined') {
-          monitorId = null;
-          return;
-        }
-        const connectionConf = monitorManagerCache[monitorId];
-        if (
-          clientType === 'monitor' &&
-          !connectionConf.manager
-        ) return;
-
-        const destination = connectionConf[
-          clientType === 'manager'
-            ? 'monitor'
-            : 'manager'
-        ] as WebSocket;
-        sendMessage(message, destination);
-      }
-    } catch (e) {
-      console.error(`Invalid message - ${messageRaw.toString()}`, e);
-    }
-  });
-
-  client.send('PING');
-
-  return () => {
+  const handleLeave = () => {
     if (monitorId === null) return;
 
     switch (clientType) {
@@ -133,5 +52,93 @@ export async function SOCKET(
         delete monitorManagerCache[monitorId];
         break;
     }
+
+    monitorId = null;
+    clientType = 'monitor';
   }
+  
+  client.on('message', (messageRaw) => {
+    try {
+      const message = JSON.parse(messageRaw.toString()) as ClientWebsocketMessage;
+      console.log(message);
+      switch (message.action) {
+        case 'join': {
+          if (message.id === monitorId) return;
+          clientType = message.clientType;
+          switch (clientType) {
+            case 'monitor': {
+              if (typeof monitorManagerCache[message.id] !== 'undefined') {
+                sendMessage({
+                  action: 'invalid-id',
+                });
+                return;
+              }
+
+              monitorId = message.id;
+              monitorManagerCache[message.id] = {
+                monitor: client,
+              };
+              break;
+            }
+            case 'manager': {
+              if (
+                typeof monitorManagerCache[message.id] === 'undefined' ||
+                typeof monitorManagerCache[message.id].manager !== 'undefined'
+              ) {
+                sendMessage({
+                  action: 'invalid-id',
+                });
+                break;
+              }
+
+              monitorId = message.id;
+              clientType = 'manager';
+              monitorManagerCache[message.id].manager = client;
+              sendMessage({
+                action: 'SetConnected',
+                state: true,
+              }, monitorManagerCache[message.id].monitor);
+              sendMessage({
+                action: 'SetConnected',
+                state: true,
+              });
+              break;
+            }
+          }
+          break;
+        }
+        case 'leave': {
+          handleLeave();
+          break;
+        }
+        default: {
+          if (monitorId === null) break;
+
+          // Find the client to send the message to
+          if (typeof monitorManagerCache[monitorId] === 'undefined') {
+            monitorId = null;
+            return;
+          }
+          const connectionConf = monitorManagerCache[monitorId];
+          if (
+            clientType === 'monitor' &&
+            !connectionConf.manager
+          ) return;
+
+          const destination = connectionConf[
+            clientType === 'manager'
+              ? 'monitor'
+              : 'manager'
+          ] as WebSocket;
+          sendMessage(message, destination);
+        }
+      }
+    } catch (e) {
+      console.error(`Invalid message - ${messageRaw.toString()}`, e);
+    }
+  });
+
+  client.send('PING');
+
+  return handleLeave;
 }

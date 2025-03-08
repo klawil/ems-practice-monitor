@@ -11,6 +11,7 @@ import { monitorSensors, ServerMonitorActions, vitalTypes, waveformConfigTypes }
 import ManagerSwitch from "./managerSwitch";
 import ManagerVital from "./managerVital";
 import ManagerWaveform from "./managerWaveform";
+import { disconnect } from "process";
  
 export const metadata: Metadata = {
   title: 'Manager',
@@ -70,6 +71,19 @@ export default function Manager() {
     }
   }
 
+  function disconnectMonitor() {
+    sendMessage({
+      action: 'leave',
+    });
+    dispatch({
+      action: 'SetMonitorId',
+    });
+    dispatch({
+      action: 'SetConnected',
+      state: false,
+    });
+  }
+
   const hasStagedChanges = Object.keys(state)
     .filter(key => key.includes('Staged'))
     .reduce((agg: boolean, key) => {
@@ -97,11 +111,15 @@ export default function Manager() {
                   id: e.target.value,
                 })}
               />
-              <Button
+              {!state.connected && <Button
                 variant="success"
                 disabled={state.connected || !state.monitorId || state.monitorId.length !== 5}
                 onClick={connectToMonitor}
-              >Connect</Button>
+              >Connect</Button>}
+              {state.connected && <Button
+                variant="danger"
+                onClick={disconnectMonitor}
+              >Disconnect</Button>}
             </InputGroup>
           </Col>
         </Row>

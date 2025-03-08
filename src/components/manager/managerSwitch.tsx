@@ -18,6 +18,7 @@ export default function ManagerSwitch({
     <Col>
       <Form.Check
         type="switch"
+        className="text-start"
         label={sensor}
         isInvalid={typeof state.sensorsStaged[sensor] !== 'undefined'}
         checked={typeof state.sensorsStaged[sensor] !== 'undefined'

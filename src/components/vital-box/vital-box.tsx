@@ -116,9 +116,6 @@ function getVitalInformation(
         sensorColorInfo.waveforms &&
         sensorColorInfo.colorString
       ) {
-        if (vital === 'HR') {
-          // console.log(sensorColorInfo, activeWaveforms);
-        }
         let isActiveWaveform = false;
         for (let i = 0; i < sensorColorInfo.waveforms.length; i++) {
           if (activeWaveforms.includes(sensorColorInfo.waveforms[i])) {
