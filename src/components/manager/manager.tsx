@@ -11,7 +11,6 @@ import { monitorSensors, ServerMonitorActions, vitalTypes, waveformConfigTypes }
 import ManagerSwitch from "./managerSwitch";
 import ManagerVital from "./managerVital";
 import ManagerWaveform from "./managerWaveform";
-import { disconnect } from "process";
  
 export const metadata: Metadata = {
   title: 'Manager',

@@ -1,0 +1,8 @@
+.imageContainer {
+  display: grid;
+  place-content: center;
+}
+
+.image {
+  max-height: 300px;
+}
