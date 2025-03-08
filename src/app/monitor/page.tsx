@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Monitor from "@/components/monitor/monitor";
+import { Container } from 'react-bootstrap';
+import styles from "./monitorPage.module.css";
  
 export const metadata: Metadata = {
   title: 'Monitor',
@@ -7,6 +9,11 @@ export const metadata: Metadata = {
 
 export default function MonitorPage() {
   return (
-    <Monitor />
+    <Container
+      fluid={true}
+      className={styles.monitorContainer}
+    >
+      <Monitor />
+    </Container>
   )
 }

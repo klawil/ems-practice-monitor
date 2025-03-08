@@ -105,22 +105,32 @@ export default function Manager() {
             </InputGroup>
           </Col>
         </Row>
-        {state.connected && <Row className="mt-3">
-          {monitorSensors.map(sensor => <ManagerSwitch
-            state={state}
-            sensor={sensor}
-            dispatch={dispatch}
-            key={sensor}
-          />)}
-        </Row>}
-        {state.connected && <Row>
-          {vitalTypes.map(vital => <ManagerVital
-            state={state}
-            vital={vital}
-            dispatch={dispatch}
-            key={vital}
-          />)}
-        </Row>}
+        {state.connected && <>
+          <Row className="mt-3">
+            <h3>Sensors</h3>
+          </Row>
+          <Row className="mt-3">
+            {monitorSensors.map(sensor => <ManagerSwitch
+              state={state}
+              sensor={sensor}
+              dispatch={dispatch}
+              key={sensor}
+            />)}
+          </Row>
+        </>}
+        {state.connected && <>
+          <Row className="mt-3">
+            <h3>Vitals</h3>
+          </Row>
+          <Row>
+            {vitalTypes.map(vital => <ManagerVital
+              state={state}
+              vital={vital}
+              dispatch={dispatch}
+              key={vital}
+            />)}
+          </Row>
+        </>}
         {state.connected && <Row>
           {waveformConfigTypes.map(waveform => <ManagerWaveform
             state={state}

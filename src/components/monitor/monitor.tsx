@@ -1,6 +1,5 @@
 "use client";
 
-import { Container } from "react-bootstrap";
 import { useEffect } from 'react';
 import VitalBox, { VitalBoxPartialProps } from "@/components/vital-box/vital-box";
 import styles from "./monitor.module.css";
@@ -351,30 +350,23 @@ export default function Monitor() {
     />);
 
     return (
-      <Container
-        fluid={true}
-      >
-        <div className={styles.monitor}>
-          <div className={styles.monitorVitalSide}>
-            {vitalBoxes}
-          </div>
-          <div className={styles.monitorWaveformSide}>
-            <div className={styles.monitorTimeBar}><Clock /></div>
-            {waveforms}
-            <div></div>
-          </div>
+      <div className={styles.monitor}>
+        <div className={styles.monitorVitalSide}>
+          {vitalBoxes}
         </div>
-      </Container>
+        <div className={styles.monitorWaveformSide}>
+          <div className={styles.monitorTimeBar}><Clock /></div>
+          {waveforms}
+          <div></div>
+        </div>
+      </div>
     )
   }
 
   return (
-    <Container
-      fluid={true}
-      className={`text-center ${styles.monitor} ${styles.monitorNoManager}`}
-    >
+    <div className={`text-center ${styles.monitor} ${styles.monitorNoManager}`}>
       <h1>Connect a Manager</h1>
       <h2>Client ID: {state.monitorId || 'N/A'}</h2>
-    </Container>
+    </div>
   )
 }
