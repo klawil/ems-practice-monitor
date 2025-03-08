@@ -1,7 +1,7 @@
-'use server';
-
 import { ClientWebsocketMessage, ClientType, ServerWebsocketMessage } from '@/types/websocket';
 import { WebSocket } from 'ws';
+
+export const dynamic = 'force-static';
 
 export async function GET() {
   const headers = new Headers();
