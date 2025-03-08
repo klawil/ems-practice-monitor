@@ -7,11 +7,15 @@
     "build": "BUILD_TYPE=static next build",
     "start": "next start",
     "lint": "next lint",
+    "deploy": "yarn build && cdk deploy",
     "prepare": "next-ws patch"
   },
   "dependencies": {
+    "aws-cdk-lib": "^2.182.0",
+    "aws-sdk": "^2.1692.0",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.8",
+    "constructs": "^10.4.2",
     "next": "15.2.0",
     "next-ws": "^2.0.2",
     "react": "^19.0.0",
@@ -23,12 +27,15 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/aws-lambda": "^8.10.147",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/ws": "^8.18.0",
+    "aws-cdk": "^2.167.1",
     "eslint": "^9",
     "eslint-config-next": "15.2.0",
+    "tsx": "^4.19.3",
     "typescript": "^5"
   }
 }
