@@ -84,16 +84,6 @@ export class EmsPracticeMonitorStack extends Stack {
       runtime: cloudfront.FunctionRuntime.JS_2_0,
     });
 
-    // // Function to fix the URL going to the API gateway
-    // const websocketUrlFunction = new cloudfront.Function(this, 'websocket-url', {
-    //   code: cloudfront.FunctionCode.fromInline(`function handler(event) {
-    //     const request = event.request;
-    //     request.uri = '/';
-    //     return request;
-    //   }`),
-    //   runtime: cloudfront.FunctionRuntime.JS_2_0,
-    // });
-
     // Create the CloudFront distribution
     new cloudfront.Distribution(this, 'cloudfront', {
       defaultBehavior: {
@@ -112,17 +102,8 @@ export class EmsPracticeMonitorStack extends Stack {
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
           origin: new cloudfrontOrigins.HttpOrigin(
             `${api.apiId}.execute-api.${this.region}.${this.urlSuffix}`,
-            // {
-            //   originPath: '/api',
-            // },
           ),
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-          // functionAssociations: [
-          //   {
-          //     eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-          //     function: websocketUrlFunction,
-          //   },
-          // ],
         },
       },
     });
