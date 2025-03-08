@@ -1,4 +1,5 @@
-import { monitorSensors, MonitorState, WaveformBoxTypes, WaveformGeneratorConfig, WaveformGeneratorState } from "@/types/monitor/reducer";
+import { MonitorState, WaveformGeneratorState } from "@/types/monitor/state";
+import { SensorTypes, WaveformBoxTypes, WaveformGeneratorConfig } from "@/types/state";
 import { ScaleChartOptions } from "chart.js";
 
 type WaveformStageConfigs<
@@ -172,7 +173,7 @@ export const chartWaveformConfig: {
     numSamplesMult: number;
     updatesPerTick: number;
     label: string;
-    sensor: typeof monitorSensors[number];
+    sensor: SensorTypes[];
     scaleY?: Partial<ScaleChartOptions<"line">['scales']['y']>;
   };
 } = {
@@ -182,7 +183,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 1,
     label: 'SpO2',
     updatesPerTick: 1,
-    sensor: 'SpO2',
+    sensor: [ 'SpO2' ],
   },
   CO2: {
     chartMin: -5,
@@ -190,7 +191,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 1,
     label: 'CO2',
     updatesPerTick: 0.5,
-    sensor: 'ETCO2',
+    sensor: [ 'ETCO2' ],
     scaleY: {
       display: true,
       position: 'right',
@@ -221,7 +222,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 5,
     label: 'I x 1.0',
     updatesPerTick: 1,
-    sensor: '3-lead',
+    sensor: [ '3-lead', '12-lead' ],
   },
   II: {
     chartMin: -50,
@@ -229,7 +230,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 5,
     label: 'II x 1.0',
     updatesPerTick: 1,
-    sensor: '3-lead',
+    sensor: [ '3-lead', '12-lead' ],
   },
   III: {
     chartMin: -50,
@@ -237,7 +238,7 @@ export const chartWaveformConfig: {
     numSamplesMult: 5,
     label: 'III x 1.0',
     updatesPerTick: 1,
-    sensor: '3-lead',
+    sensor: [ '3-lead', '12-lead' ],
   },
 };
 

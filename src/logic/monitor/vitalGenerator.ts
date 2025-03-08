@@ -1,4 +1,4 @@
-import { VitalGeneratorConfig } from "@/types/monitor/reducer";
+import { VitalGeneratorConfig } from "@/types/state";
 
 export class VitalGenerator {
   private currentValue: number = -1;

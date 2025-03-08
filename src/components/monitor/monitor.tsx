@@ -11,7 +11,10 @@ import { defaultMonitorState, stateReducer } from "@/logic/monitor/reducer";
 import { ActionDispatch } from "react";
 import { VitalGenerator } from "@/logic/monitor/vitalGenerator";
 import { chartWaveformConfig, CO2Generator, LeadIIGenerator, Spo2Generator } from "@/logic/monitor/waveformGenerator";
-import { MonitorAction, MonitorState, vitalTypes, waveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
+import { MonitorAction, MonitorState, waveformBoxNames } from "@/types/monitor/state";
+import { useMessaging } from "@/logic/websocket";
+import { ServerWebsocketMessage } from "@/types/websocket";
+import { vitalTypes, VitalTypes, WaveformBoxTypes } from "@/types/state";
 
 const waveformSamples = 30 * 5; // 30Hz for 5s
 const noDataWaveformBlips = 30;
@@ -22,13 +25,13 @@ const tickDefaultValue = (tickNum: number, baseline: number = 0) =>
     : baseline;
 
 const waveformsToVitals: {
-  [key in WaveformBoxTypes]?: typeof vitalTypes[number];
+  [key in WaveformBoxTypes]?: VitalTypes;
 } = {
   SpO2: 'SpO2',
   CO2: 'CO2',
 };
 const vitalWaveformRestrctions: {
-  [key in typeof vitalTypes[number]]?: 'co2GeneratorState' | 'spo2GeneratorState' | 'leadIIGeneratorState';
+  [key in VitalTypes]?: 'co2GeneratorState' | 'spo2GeneratorState' | 'leadIIGeneratorState';
 } = {
   CO2: 'co2GeneratorState',
   RR: 'co2GeneratorState',
@@ -63,7 +66,7 @@ const vitalBoxConfigs: VitalBoxPartialProps[] = [
 const tickTime = Math.round(1000 / 30); // 30Hz
 
 const vitalGenerators: {
-  [key in typeof vitalTypes[number]]: VitalGenerator;
+  [key in VitalTypes]: VitalGenerator;
 } = {
   HR: new VitalGenerator(),
   SpO2: new VitalGenerator(),
@@ -96,7 +99,7 @@ function updateWaveformsOrSetTimeout(
       vitalGenerators[vital].increment(state[`${vital}GeneratorConfig`]);
       if (vitalGenerators[vital].get() !== state[vital].value) {
         dispatch({
-          type: 'SetVital',
+          action: 'SetVital',
           vital,
           value: vitalGenerators[vital].get(),
         });
@@ -177,7 +180,7 @@ function updateWaveformsOrSetTimeout(
               break;
           }
           if (
-            !state.sensors[waveformSpeedConfig.sensor] ||
+            !waveformSpeedConfig.sensor.reduce((agg, sensor) => agg || state.sensors[sensor], false) ||
             nextValue === null
           ) {
             nextValue = tickDefaultValue(
@@ -194,21 +197,21 @@ function updateWaveformsOrSetTimeout(
         switch (waveformState.waveform) {
           case 'CO2':
             dispatch({
-              type: 'SetWaveformGeneratorState',
+              action: 'SetWaveformGeneratorState',
               waveform: 'co2',
               ...generatorState,
             });
             break;
           case 'SpO2':
             dispatch({
-              type: 'SetWaveformGeneratorState',
+              action: 'SetWaveformGeneratorState',
               waveform: 'spo2',
               ...generatorState,
             });
             break;
           case 'II':
             dispatch({
-              type: 'SetWaveformGeneratorState',
+              action: 'SetWaveformGeneratorState',
               waveform: 'leadII',
               ...generatorState,
             });
@@ -234,14 +237,14 @@ function updateWaveformsOrSetTimeout(
 
       // Set the data
       dispatch({
-        type: 'SetWaveform',
+        action: 'SetWaveform',
         index: i as 0 | 1 | 2,
         data: waveformData,
       });
       const currentWaveformType = waveformState.waveform;
       if (typeof waveformsToVitals[currentWaveformType] !== 'undefined') {
         dispatch({
-          type: 'SetVital',
+          action: 'SetVital',
           vital: waveformsToVitals[currentWaveformType],
           waveformVal: nextValue || 0,
         });
@@ -254,7 +257,7 @@ function updateWaveformsOrSetTimeout(
     }
 
     dispatch({
-      type: 'SetTick',
+      action: 'SetTick',
       lastTickTime: nowTime,
       lastTick: tickNum,
     });
@@ -281,52 +284,62 @@ function generateMonitorId(): string {
     .join('');
 }
 
+function parseMessage(
+  message: ServerWebsocketMessage,
+  dispatch: ActionDispatch<[action: MonitorAction]>,
+) {
+  console.log('Parsing message', message);
+  switch (message.action) {
+    case 'invalid':
+    case 'invalid-id':
+      dispatch({
+        action: 'SetMonitorId',
+        id: generateMonitorId(),
+      });
+      break;
+    default:
+      dispatch(message);
+      break;
+  }
+}
+
 export default function Monitor() {
   const [state, dispatch] = useReducer(stateReducer, defaultMonitorState);
+  const [popMessage, sendMessage] = useMessaging(
+    () => `ws://${window.location.host}/api`,
+  );
+
+  useEffect(() => {
+    if (state.monitorId && !state.connected) {
+      sendMessage({
+        action: 'join',
+        clientType: 'monitor',
+        id: state.monitorId as string,
+      });
+    }
+  }, [sendMessage, state.monitorId, state.connected]);
+
+  useEffect(() => {
+    const message = popMessage();
+    if (typeof message !== 'undefined') {
+      parseMessage(message, dispatch);
+    }
+  }, [popMessage]);
+
+  useEffect(() => {
+    if (state.connected) {
+      updateWaveformsOrSetTimeout(state, dispatch);
+    }
+  }, [state]);
 
   if (typeof state.monitorId === 'undefined') {
     dispatch({
-      type: 'SetMonitorId',
+      action: 'SetMonitorId',
       id: generateMonitorId(),
     });
   }
-  
-  if (state.hasManager) {
-    useEffect(() => updateWaveformsOrSetTimeout(state, dispatch), [
-      state,
-    ]);
 
-    useEffect(() => {
-      setTimeout(() => dispatch({
-        type: 'SetSensor',
-        sensor: 'SpO2',
-        state: true,
-      }), 500);
-      setTimeout(() => dispatch({
-        type: 'SetSensor',
-        sensor: '3-lead',
-        state: true,
-      }), 6000);
-      setTimeout(() => dispatch({
-        type: 'SetSensor',
-        sensor: 'ETCO2',
-        state: true,
-      }), 9000);
-      setTimeout(() => dispatch({
-        type: 'SetSensor',
-        sensor: 'BP',
-        state: true,
-      }), 12000);
-    }, []);
-
-    useEffect(() => {
-      setTimeout(() => dispatch({
-        type: 'SetVitalGeneratorConfig',
-        vital: 'HR',
-        targetValue: 50,
-      }), 5000);
-    }, []);
-
+  if (state.connected) {
     const vitalBoxes = vitalBoxConfigs.map((config, i) => <VitalBox
       {...config}
       state={state}

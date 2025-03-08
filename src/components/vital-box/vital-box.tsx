@@ -1,6 +1,7 @@
-import { monitorSensors, MonitorState, vitalTypes, waveformBoxNames, WaveformBoxTypes } from "@/types/monitor/reducer";
+import { MonitorState, waveformBoxNames } from "@/types/monitor/state";
 import styles from "./vital-box.module.css";
 import { BsBellSlashFill } from "react-icons/bs";
+import { SensorTypes, VitalTypes, WaveformBoxTypes } from "@/types/state";
 
 type VitalBoxTypes = 'HR' | 'SpO2' | 'CO2' | 'BP';
 
@@ -8,8 +9,8 @@ export interface VitalBoxPartialProps {
   label: VitalBoxTypes;
   unit?: string;
 
-  vital1: typeof vitalTypes[number];
-  vital2?: typeof vitalTypes[number];
+  vital1: VitalTypes;
+  vital2?: VitalTypes;
 }
 
 interface VitalBoxProps extends VitalBoxPartialProps {
@@ -17,8 +18,8 @@ interface VitalBoxProps extends VitalBoxPartialProps {
 }
 
 const vitalTypeRequiredSensor: {
-  [key in typeof vitalTypes[number]]: {
-    sensor?: typeof monitorSensors[number];
+  [key in VitalTypes]: {
+    sensor?: SensorTypes;
     waveforms?: WaveformBoxTypes[];
     colorString?: string;
   }[];
@@ -90,7 +91,7 @@ interface VitalCurrentState {
 }
 function getVitalInformation(
   state: MonitorState,
-  vital: typeof vitalTypes[number],
+  vital: VitalTypes,
   activeWaveforms: WaveformBoxTypes[],
 ): VitalCurrentState {
   const returnVal: VitalCurrentState = {

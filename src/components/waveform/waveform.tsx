@@ -3,7 +3,7 @@
 import styles from "./waveform.module.css";
 import { Line } from 'react-chartjs-2';
 import { LinearScale, Chart, CategoryScale, PointElement, LineElement } from "chart.js";
-import { MonitorState } from "@/types/monitor/reducer";
+import { MonitorState } from "@/types/monitor/state";
 import { chartWaveformConfig } from "@/logic/monitor/waveformGenerator";
 
 Chart.register(LinearScale, CategoryScale, PointElement, LineElement);
