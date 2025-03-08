@@ -50,7 +50,7 @@ export default function Manager() {
     popMessage,
     sendMessage,
   ] = useMessaging(
-    () => `ws://${window.location.host}/api`,
+    () => `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api`,
   );
 
   useEffect(() => {

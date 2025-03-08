@@ -305,7 +305,7 @@ function parseMessage(
 export default function Monitor() {
   const [state, dispatch] = useReducer(stateReducer, defaultMonitorState);
   const [popMessage, sendMessage] = useMessaging(
-    () => `ws://${window.location.host}/api`,
+    () => `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api`,
   );
 
   useEffect(() => {
