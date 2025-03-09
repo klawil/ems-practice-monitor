@@ -42,23 +42,24 @@ The two parts communicate using a websocket API that can be run on the Next serv
 ## Deployment
 
 1. **To add a custom domain**
-  1a. **Create a certificate** in AWS ACM for the domain
 
-  1b. **Create a `.env` file** with the following properties:
+    a. **Create a certificate** in AWS ACM for the domain
+
+    b. **Create a `.env` file** with the following properties:
     ```env
     DOMAIN_NAME=your.domain.name
     SSL_CERT_ARN=your-ssl-cert-arn
     ```
 
-2. **Authenticate with AWS**:
+3. **Authenticate with AWS**:
     Ensure you are authenticated with the appropriate AWS user.
 
-3. **Bootstrap the CDK** (if necessary):
+4. **Bootstrap the CDK** (if necessary):
     ```bash
     npx cdk bootstrap
     ```
 
-4. **Deploy the project**:
+5. **Deploy the project**:
     ```bash
     yarn deploy
     ```
