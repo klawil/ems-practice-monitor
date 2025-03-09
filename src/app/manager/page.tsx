@@ -4,6 +4,7 @@
 
 import type { Metadata } from 'next'
 import Manager from "@/components/manager/manager";
+import { Suspense } from 'react';
  
 export const metadata: Metadata = {
   title: 'Manager',
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
 
 export default function ManagerPage() {
   return (
-    <Manager />
+    <Suspense>
+      <Manager />
+    </Suspense>
   )
 }

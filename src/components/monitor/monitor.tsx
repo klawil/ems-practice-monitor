@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import VitalBox, { VitalBoxPartialProps } from "@/components/vital-box/vital-box";
 import styles from "./monitor.module.css";
 import Waveform from "@/components/waveform/waveform";
@@ -308,6 +308,7 @@ export default function Monitor() {
   const [popMessage, sendMessage] = useMessaging(
     () => `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api`,
   );
+  const [origin, setOrigin] = useState<string>('');
 
   useEffect(() => {
     if (state.monitorId && !state.connected) {
@@ -331,6 +332,12 @@ export default function Monitor() {
       updateWaveformsOrSetTimeout(state, dispatch);
     }
   }, [state]);
+
+  useEffect(() => {
+    if (origin === '') {
+      setOrigin(window.location.origin);
+    }
+  }, [])
 
   if (typeof state.monitorId === 'undefined') {
     dispatch({
@@ -371,7 +378,7 @@ export default function Monitor() {
         <h2>Client ID: {state.monitorId || 'N/A'}</h2>
         <div>
           <QRCode
-            value={`${location.origin}/manager?monitorId=${state.monitorId}`}
+            value={`${origin}/manager?monitorId=${state.monitorId}`}
             fgColor='white'
             bgColor='rgba(0,0,0,0)'
           />
