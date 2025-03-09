@@ -73,11 +73,15 @@ export function defaultReducer(state: SharedState, action: ServerMonitorActions)
         connected: action.state,
       };
     case 'SetSensor': {
+      const {
+        action: _,
+        ...data
+      } = action;
       return {
         ...state,
         sensors: {
           ...state.sensors,
-          [action.sensor]: action.state,
+          ...data,
         },
       };
     }

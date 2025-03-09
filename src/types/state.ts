@@ -72,10 +72,10 @@ interface SetConnectedAction {
   action: 'SetConnected',
   state: boolean;
 }
-export interface SetSensorAction {
+export type SetSensorAction = {
   action: 'SetSensor';
-  sensor: SensorTypes;
-  state: boolean;
+} & {
+  [key in SensorTypes]?: boolean;
 };
 export interface SetWaveformGeneratorConfigAction extends Partial<
   SharedState['co2GeneratorConfig'] & SharedState['spo2GeneratorConfig'] & SharedState['ekgGeneratorConfig']

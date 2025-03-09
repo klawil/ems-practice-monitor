@@ -11,6 +11,7 @@ import { monitorSensors, ServerMonitorActions, vitalTypes, waveformConfigTypes }
 import ManagerSwitch from "./managerSwitch";
 import ManagerVital from "./managerVital";
 import ManagerWaveform from "./managerWaveform";
+import { useSearchParams } from "next/navigation";
  
 export const metadata: Metadata = {
   title: 'Manager',
@@ -46,6 +47,7 @@ function getPrunedObj<T extends object>(v: T): T {
 
 export default function Manager() {
   const [ state, dispatch ] = useReducer(stateReducer, defaultManagerState);
+  const searchParams = useSearchParams();
   const [
     popMessage,
     sendMessage,
@@ -80,6 +82,17 @@ export default function Manager() {
     dispatch({
       action: 'SetConnected',
       state: false,
+    });
+  }
+
+  const searchMonitorId = searchParams.get('monitorId');
+  if (
+    !state.monitorId &&
+    searchMonitorId
+  ) {
+    dispatch({
+      action: 'SetMonitorId',
+      id: searchMonitorId,
     });
   }
 
@@ -163,16 +176,12 @@ export default function Manager() {
               // Send the sensors
               const sensorsStaged = getPrunedObj(state.sensorsStaged);
               if (Object.keys(sensorsStaged).length > 0) {
-                (Object.keys(sensorsStaged) as (keyof typeof sensorsStaged)[])
-                .forEach(sensor => {
-                    const action: ServerMonitorActions = {
-                      action: 'SetSensor',
-                      sensor,
-                      state: sensorsStaged[sensor] as boolean,
-                    };
-                    sendMessage(action);
-                    dispatch(action);
-                  });
+                const action: ServerMonitorActions = {
+                  action: 'SetSensor',
+                  ...sensorsStaged,
+                };
+                sendMessage(action);
+                dispatch(action);
               }
               dispatch({ action: 'ClearSensorStaged' });
 
