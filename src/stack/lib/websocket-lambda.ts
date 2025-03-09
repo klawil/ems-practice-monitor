@@ -6,6 +6,8 @@ const connectionTable = process.env.TABLE_CONNECTIONS as string;
 
 const dynamoDb = new aws.DynamoDB.DocumentClient();
 
+const connectionTableItemTTL = 6 * 60 * 60; // 6 hours, in seconds
+
 interface MonitorInformation {
   MonitorId: string;
   MonitorConnection: string;
@@ -42,10 +44,14 @@ async function sendMessage(
   const agManApi = new aws.ApiGatewayManagementApi({
     endpoint: `https://${event.requestContext.domainName}/${event.requestContext.stage}`
   });
-  await agManApi.postToConnection({
-    ConnectionId,
-    Data: JSON.stringify(message),
-  }).promise();
+  try {
+    await agManApi.postToConnection({
+      ConnectionId,
+      Data: JSON.stringify(message),
+    }).promise();
+  } catch (e) {
+    console.error(`Error sending message to ${ConnectionId}:`, message, e);
+  }
 }
 
 async function handleLeave(
@@ -157,6 +163,7 @@ export async function handler(event: APIGatewayProxyWebsocketEventV2): Promise<A
                 Item: {
                   MonitorId: message.id,
                   MonitorConnection: connectionId,
+                  TTL: Math.ceil((Date.now() / 1000) + connectionTableItemTTL),
                 },
               }).promise();
               break;

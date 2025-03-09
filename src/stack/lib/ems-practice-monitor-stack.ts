@@ -28,6 +28,7 @@ export class EmsPracticeMonitorStack extends Stack {
         name: 'MonitorId',
         type: dynamodb.AttributeType.STRING,
       },
+      timeToLiveAttribute: 'TTL',
     });
 
     // Create the lambda function that will handle the logic
