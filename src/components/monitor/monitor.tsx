@@ -14,6 +14,7 @@ import { MonitorAction, MonitorState, waveformBoxNames } from "@/types/monitor/s
 import { useMessaging } from "@/logic/websocket";
 import { ServerWebsocketMessage } from "@/types/websocket";
 import { vitalTypes, VitalTypes, WaveformBoxTypes } from "@/types/state";
+import { QRCode } from 'react-qrcode-logo';
 
 const waveformSamples = 30 * 5; // 30Hz for 5s
 const noDataWaveformBlips = 30;
@@ -366,7 +367,16 @@ export default function Monitor() {
   return (
     <div className={`text-center ${styles.monitor} ${styles.monitorNoManager}`}>
       <h1>Connect a Manager</h1>
-      <h2>Client ID: {state.monitorId || 'N/A'}</h2>
+      {state.monitorId && <>
+        <h2>Client ID: {state.monitorId || 'N/A'}</h2>
+        <div>
+          <QRCode
+            value={`${location.origin}/manager?monitorId=${state.monitorId}`}
+            fgColor='white'
+            bgColor='rgba(0,0,0,0)'
+          />
+        </div>
+      </>}
     </div>
   )
 }
