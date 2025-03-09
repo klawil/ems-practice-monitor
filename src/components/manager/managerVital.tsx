@@ -16,7 +16,9 @@ export default function ManagerVital({
   dispatch,
 }: ManagerVitalInputProps) {
   const checkForChange = (key: 'targetValue' | 'targetRange') => (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = Math.round(Number(e.target.value));
+    const newValue = e.target.value === ''
+      ? -1
+      : Math.round(Number(e.target.value));
 
     dispatch({
       action: 'SetVitalGeneratorConfigStaged',
@@ -38,16 +40,22 @@ export default function ManagerVital({
         <Form.Control
           type="number"
           isInvalid={typeof state[`${vital}GeneratorConfigStaged`].targetValue !== 'undefined'}
-          value={state[`${vital}GeneratorConfigStaged`].targetValue ||
-            state[`${vital}GeneratorConfig`].targetValue}
+          value={typeof state[`${vital}GeneratorConfigStaged`].targetValue !== 'undefined'
+            ? state[`${vital}GeneratorConfigStaged`].targetValue === -1
+              ? ''
+              : state[`${vital}GeneratorConfigStaged`].targetValue
+            : state[`${vital}GeneratorConfig`].targetValue}
           onChange={checkForChange('targetValue')}
         />
         <InputGroup.Text>+/-</InputGroup.Text>
         <Form.Control
           type="number"
           isInvalid={typeof state[`${vital}GeneratorConfigStaged`].targetRange !== 'undefined'}
-          value={state[`${vital}GeneratorConfigStaged`].targetRange ||
-            state[`${vital}GeneratorConfig`].targetRange}
+          value={typeof state[`${vital}GeneratorConfigStaged`].targetRange !== 'undefined'
+            ? state[`${vital}GeneratorConfigStaged`].targetRange === -1
+              ? ''
+              : state[`${vital}GeneratorConfigStaged`].targetRange
+            : state[`${vital}GeneratorConfig`].targetRange}
           onChange={checkForChange('targetRange')}
         />
         {hasStagedChanges && <Button

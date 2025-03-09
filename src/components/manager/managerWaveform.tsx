@@ -47,7 +47,9 @@ export default function ManagerWaveform({
   const config = waveformConfig[waveform];
 
   const checkForChange = (key: keyof typeof config.keys) => (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = Math.round(Number(e.target.value)) / 100;
+    const newValue = e.target.value === ''
+      ? -1
+      : Math.round(Number(e.target.value)) / 100;
 
     dispatch({
       action: 'SetWaveformGeneratorConfigStaged',
@@ -72,11 +74,18 @@ export default function ManagerWaveform({
             <Form.Control
               type="number"
               isInvalid={typeof state[`${waveform}GeneratorConfigStaged`][key] !== 'undefined'}
-              value={Math.round(100 * (
-                typeof state[`${waveform}GeneratorConfigStaged`][key] === 'number'
-                  ? state[`${waveform}GeneratorConfigStaged`][key] as number
-                  : state[`${waveform}GeneratorConfig`][key] as number
-               ))}
+              value={
+                (
+                  typeof state[`${waveform}GeneratorConfigStaged`][key] === 'number'
+                  && state[`${waveform}GeneratorConfigStaged`][key] === -1
+                )
+                  ? ''
+                  : Math.round(100 * (
+                    typeof state[`${waveform}GeneratorConfigStaged`][key] === 'number'
+                      ? state[`${waveform}GeneratorConfigStaged`][key] as number
+                      : state[`${waveform}GeneratorConfig`][key] as number
+                  ))
+              }
               onChange={checkForChange(key)}
             />
             <InputGroup.Text>%</InputGroup.Text>
