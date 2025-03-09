@@ -363,7 +363,10 @@ export default function Monitor() {
           {vitalBoxes}
         </div>
         <div className={styles.monitorWaveformSide}>
-          <div className={styles.monitorTimeBar}><Clock /></div>
+          <div
+            suppressHydrationWarning={true}
+            className={styles.monitorTimeBar}
+          ><Clock /></div>
           {waveforms}
           <div></div>
         </div>
@@ -372,7 +375,10 @@ export default function Monitor() {
   }
 
   return (
-    <div className={`text-center ${styles.monitor} ${styles.monitorNoManager}`}>
+    <div
+      suppressHydrationWarning={true}
+      className={`text-center ${styles.monitor} ${styles.monitorNoManager}`}
+    >
       <h1>Connect a Manager</h1>
       {state.monitorId && <>
         <h2>Client ID: {state.monitorId || 'N/A'}</h2>
