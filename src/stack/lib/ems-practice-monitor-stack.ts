@@ -1,5 +1,6 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import * as dotenv from 'dotenv';
 
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3Deploy from 'aws-cdk-lib/aws-s3-deployment';
@@ -9,6 +10,9 @@ import * as apigateway from 'aws-cdk-lib/aws-apigatewayv2';
 import * as apigatewayIntegrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as cloudfrontOrigins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as certificateManager from 'aws-cdk-lib/aws-certificatemanager';
+
+dotenv.config({ path: `${__dirname}/../../../.env` });
 
 export class EmsPracticeMonitorStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -85,7 +89,23 @@ export class EmsPracticeMonitorStack extends Stack {
     });
 
     // Create the CloudFront distribution
-    new cloudfront.Distribution(this, 'cloudfront', {
+    const cfDistro = new cloudfront.Distribution(this, 'cloudfront', {
+      ...(process.env.DOMAIN_NAME
+        ? {
+          domainNames: [ process.env.DOMAIN_NAME ],
+        }
+        : {}
+      ),
+      ...(process.env.SSL_CERT_ARN
+        ? {
+          certificate: certificateManager.Certificate.fromCertificateArn(
+            this,
+            'ssl-cert',
+            process.env.SSL_CERT_ARN
+          ),
+        }
+        : {}
+      ),
       defaultBehavior: {
         origin: cloudfrontOrigins.S3BucketOrigin.withOriginAccessControl(bucket),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -106,6 +126,11 @@ export class EmsPracticeMonitorStack extends Stack {
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         },
       },
+    });
+
+    // Export the CF url
+    new CfnOutput(this, 'cf-url', {
+      value: cfDistro.domainName,
     });
   }
 }
