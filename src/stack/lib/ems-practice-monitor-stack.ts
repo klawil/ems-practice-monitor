@@ -21,12 +21,6 @@ export class EmsPracticeMonitorStack extends Stack {
     // Create an S3 bucket to store the static files
     const bucket = new s3.Bucket(this, 'website-bucket');
 
-    // Upload the static files
-    new s3Deploy.BucketDeployment(this, 'deploy-website', {
-      sources: [s3Deploy.Source.asset(`${__dirname}/../../../build`)],
-      destinationBucket: bucket,
-    });
-
     // Create the DynamoDB that will store the connection information
     const connectionTable = new dynamodb.Table(this, 'connections', {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -126,6 +120,13 @@ export class EmsPracticeMonitorStack extends Stack {
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         },
       },
+    });
+
+    // Upload the static files and clear the cloudfront cache
+    new s3Deploy.BucketDeployment(this, 'deploy-website', {
+      sources: [s3Deploy.Source.asset(`${__dirname}/../../../build`)],
+      destinationBucket: bucket,
+      distribution: cfDistro,
     });
 
     // Export the CF url
