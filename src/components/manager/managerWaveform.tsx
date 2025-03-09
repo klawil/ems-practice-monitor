@@ -13,28 +13,31 @@ const waveformConfig: {
   [key in WaveformConfigTypes]: {
     label: string;
     keys: {
-      [key2 in keyof ManagerState[`${key}GeneratorConfig`]]?: string;
+      [key2 in keyof ManagerState[`${key}GeneratorConfig`]]?: [
+        string,
+        number,
+      ];
     };
   };
 } = {
   co2: {
     label: 'ETCO2',
     keys: {
-      exhaleRatio: 'Exhale Percent',
-      noiseLevel: 'Noise Percent',
-      startRounding: 'Rounding Percent',
+      exhaleRatio: [ 'Exhale Percent', 0.9 ],
+      noiseLevel: [ 'Noise Percent', 2 ],
+      startRounding: [ 'Rounding Percent', 0.9 ],
     },
   },
   spo2: {
     label: 'SPO2',
     keys: {
-      noiseLevel: 'Noise Percent',
+      noiseLevel: [ 'Noise Percent', 2 ],
     },
   },
   ekg: {
     label: 'EKG',
     keys: {
-      noiseLevel: 'Noise Percent',
+      noiseLevel: [ 'Noise Percent', 2 ],
     },
   },
 };
@@ -47,9 +50,15 @@ export default function ManagerWaveform({
   const config = waveformConfig[waveform];
 
   const checkForChange = (key: keyof typeof config.keys) => (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value === ''
+    let newValue = e.target.value === ''
       ? -1
       : Math.round(Number(e.target.value)) / 100;
+    if (
+      config.keys[key] &&
+      config.keys[key][1] < newValue
+    ) {
+      newValue = config.keys[key][1];
+    }
 
     dispatch({
       action: 'SetWaveformGeneratorConfigStaged',
@@ -70,7 +79,7 @@ export default function ManagerWaveform({
       {(Object.keys(config.keys) as (keyof typeof config.keys)[]).map(key => (
         <Row className="mt-1" key={key}>
           <InputGroup>
-            <InputGroup.Text>{config.keys[key]}</InputGroup.Text>
+            <InputGroup.Text>{config.keys[key]?.[0] || ''}</InputGroup.Text>
             <Form.Control
               type="number"
               isInvalid={typeof state[`${waveform}GeneratorConfigStaged`][key] !== 'undefined'}

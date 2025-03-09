@@ -47,7 +47,7 @@ export const defaultState: SharedState = {
   },
   co2GeneratorConfig: {
     noiseLevel: 0.05,
-    startRounding: 0.5,
+    startRounding: 0.05,
     exhaleRatio: 0.5,
   },
   spo2GeneratorConfig: {
