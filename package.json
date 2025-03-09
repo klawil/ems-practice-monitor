@@ -16,6 +16,7 @@
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.8",
     "constructs": "^10.4.2",
+    "dotenv": "^16.4.7",
     "next": "15.2.0",
     "next-ws": "^2.0.2",
     "react": "^19.0.0",
