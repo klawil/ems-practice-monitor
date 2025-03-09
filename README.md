@@ -41,7 +41,7 @@ Once you turn on some sensors on the manager page, you will see the data populat
 ![Monitor with data](public/monitor-with-sensors.png)
 
 ## Features To Be Added
-- [ ] Create an AWS CDK stack that deploys the websocket server and static files on AWS
+- [x] Create an AWS CDK stack that deploys the websocket server and static files on AWS
 - [ ] Synchronize the SPO2 and EKG waveforms
 - [ ] Add more options to simulate conditions in the SPO2 and EKG waveforms
 - [ ] Add alerts to the monitor (no breaths, check SPO2 sensor, disconnected leads)
