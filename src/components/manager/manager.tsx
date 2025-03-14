@@ -103,130 +103,138 @@ export default function Manager() {
   return (
     <Container
       className="text-center"
+      style={{
+        paddingBottom: '80px',
+      }}
     >
       <h1>Control a Monitor</h1>
-        <Row>
-          <Col
-            xl={{span: 4, offset: 4}}
-            lg={{span: 6, offset: 3}}
-            md={{span: 8, offset: 2}}
-          >
-            <InputGroup>
-              <InputGroup.Text>Monitor ID</InputGroup.Text>
-              <Form.Control
-                type="text"
-                value={state.monitorId || ''}
-                placeholder="XXXXX"
-                disabled={state.connected}
-                onChange={e => dispatch({
-                  action: 'SetMonitorId',
-                  id: e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, ''),
-                })}
-                onKeyUp={e => {
-                  if (e.key === 'Enter')
-                    connectToMonitor();
-                }}
-              />
-              {!state.connected && <Button
-                variant="success"
-                disabled={state.connected || !state.monitorId || state.monitorId.length !== 5}
-                onClick={connectToMonitor}
-              >Connect</Button>}
-              {state.connected && <Button
-                variant="danger"
-                onClick={disconnectMonitor}
-              >Disconnect</Button>}
-            </InputGroup>
-          </Col>
+      <Row>
+        <Col
+          xl={{span: 4, offset: 4}}
+          lg={{span: 6, offset: 3}}
+          md={{span: 8, offset: 2}}
+        >
+          <InputGroup>
+            <InputGroup.Text>Monitor ID</InputGroup.Text>
+            <Form.Control
+              type="text"
+              value={state.monitorId || ''}
+              placeholder="XXXXX"
+              disabled={state.connected}
+              onChange={e => dispatch({
+                action: 'SetMonitorId',
+                id: e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, ''),
+              })}
+              onKeyUp={e => {
+                if (e.key === 'Enter')
+                  connectToMonitor();
+              }}
+            />
+            {!state.connected && <Button
+              variant="success"
+              disabled={state.connected || !state.monitorId || state.monitorId.length !== 5}
+              onClick={connectToMonitor}
+            >Connect</Button>}
+            {state.connected && <Button
+              variant="danger"
+              onClick={disconnectMonitor}
+            >Disconnect</Button>}
+          </InputGroup>
+        </Col>
+      </Row>
+      {state.connected && <>
+        <Row className="mt-3">
+          <h3>Sensors</h3>
         </Row>
-        {state.connected && <>
-          <Row className="mt-3">
-            <h3>Sensors</h3>
-          </Row>
-          <Row className="mt-3">
-            {monitorSensors.map(sensor => <ManagerSwitch
-              state={state}
-              sensor={sensor}
-              dispatch={dispatch}
-              key={sensor}
-            />)}
-          </Row>
-        </>}
-        {state.connected && <>
-          <Row className="mt-3">
-            <h3>Vitals</h3>
-          </Row>
-          <Row>
-            {vitalTypes.map(vital => <ManagerVital
-              state={state}
-              vital={vital}
-              dispatch={dispatch}
-              key={vital}
-            />)}
-          </Row>
-        </>}
-        {state.connected && <Row>
-          {waveformConfigTypes.map(waveform => <ManagerWaveform
+        <Row className="mt-3">
+          {monitorSensors.map(sensor => <ManagerSwitch
             state={state}
-            waveform={waveform}
+            sensor={sensor}
             dispatch={dispatch}
-            key={waveform}
+            key={sensor}
           />)}
-        </Row>}
-        {hasStagedChanges && <Row className="mt-3">
-          <Button
-            variant="success"
-            onClick={() => {
-              // Send the sensors
-              const sensorsStaged = getPrunedObj(state.sensorsStaged);
-              if (Object.keys(sensorsStaged).length > 0) {
-                const action: ServerMonitorActions = {
-                  action: 'SetSensor',
-                  ...sensorsStaged,
-                };
-                sendMessage(action);
-                dispatch(action);
-              }
-              dispatch({ action: 'ClearSensorStaged' });
+        </Row>
+      </>}
+      {state.connected && <>
+        <Row className="mt-3">
+          <h3>Vitals</h3>
+        </Row>
+        <Row>
+          {vitalTypes.map(vital => <ManagerVital
+            state={state}
+            vital={vital}
+            dispatch={dispatch}
+            key={vital}
+          />)}
+        </Row>
+      </>}
+      {state.connected && <Row>
+        {waveformConfigTypes.map(waveform => <ManagerWaveform
+          state={state}
+          waveform={waveform}
+          dispatch={dispatch}
+          key={waveform}
+        />)}
+      </Row>}
+      {hasStagedChanges && <Button
+        variant="success"
+        onClick={() => {
+          // Send the sensors
+          const sensorsStaged = getPrunedObj(state.sensorsStaged);
+          if (Object.keys(sensorsStaged).length > 0) {
+            const action: ServerMonitorActions = {
+              action: 'SetSensor',
+              ...sensorsStaged,
+            };
+            sendMessage(action);
+            dispatch(action);
+          }
+          dispatch({ action: 'ClearSensorStaged' });
 
-              // Send the vital generator configs
-              vitalTypes.forEach(vital => {
-                const prunedObj = getPrunedObj(state[`${vital}GeneratorConfigStaged`]);
-                if (Object.keys(prunedObj).length === 0) return;
+          // Send the vital generator configs
+          vitalTypes.forEach(vital => {
+            const prunedObj = getPrunedObj(state[`${vital}GeneratorConfigStaged`]);
+            if (Object.keys(prunedObj).length === 0) return;
 
-                const action: ServerMonitorActions = {
-                  action: 'SetVitalGeneratorConfig',
-                  vital,
-                  ...prunedObj,
-                };
-                sendMessage(action);
-                dispatch(action);
-                dispatch({
-                  action: 'ClearVitalGeneratorConfigStaged',
-                  vital,
-                });
-              });
+            const action: ServerMonitorActions = {
+              action: 'SetVitalGeneratorConfig',
+              vital,
+              ...prunedObj,
+            };
+            sendMessage(action);
+            dispatch(action);
+            dispatch({
+              action: 'ClearVitalGeneratorConfigStaged',
+              vital,
+            });
+          });
 
-              // Send the waveform generator configs
-              waveformConfigTypes.forEach(waveform => {
-                const prunedObj = getPrunedObj(state[`${waveform}GeneratorConfigStaged`]);
-                if (Object.keys(prunedObj).length === 0) return;
+          // Send the waveform generator configs
+          waveformConfigTypes.forEach(waveform => {
+            const prunedObj = getPrunedObj(state[`${waveform}GeneratorConfigStaged`]);
+            if (Object.keys(prunedObj).length === 0) return;
 
-                const action: ServerMonitorActions = {
-                  action: 'SetWaveformGeneratorConfig',
-                  waveform,
-                  ...prunedObj,
-                };
-                sendMessage(action);
-                dispatch(action);
-                dispatch({
-                  action: 'ClearWaveformGeneratorConfigStaged',
-                  waveform,
-                });
-              });
-            }}
-          >Send to Monitor</Button>
-        </Row>}
+            const action: ServerMonitorActions = {
+              action: 'SetWaveformGeneratorConfig',
+              waveform,
+              ...prunedObj,
+            };
+            sendMessage(action);
+            dispatch(action);
+            dispatch({
+              action: 'ClearWaveformGeneratorConfigStaged',
+              waveform,
+            });
+          });
+        }}
+        className="container"
+        style={{
+          position: 'fixed',
+          bottom: '10px',
+          left: '50%',
+          transform: 'translate(-50%, 0)',
+        }}
+      >Send to Monitor</Button>}
     </Container>
   );
 }
