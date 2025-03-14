@@ -1,5 +1,6 @@
 import { ManagerState, ManagerAction } from "@/types/manager/state";
 import { defaultReducer, defaultState } from "../reducer";
+import { vitalTypes, waveformConfigTypes } from "@/types/state";
 
 export const defaultManagerState: ManagerState = {
   ...defaultState,
@@ -69,6 +70,11 @@ export function stateReducer(state: ManagerState, action: ManagerAction): Manage
           ...state[`${waveform}GeneratorConfigStaged`],
           ...data,
         },
+      };
+    }
+    case 'DisconnectMonitor': {
+      return {
+        ...defaultManagerState,
       };
     }
     default: {

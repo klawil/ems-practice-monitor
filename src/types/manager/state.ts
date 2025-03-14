@@ -22,11 +22,14 @@ interface ClearVitalGeneratorConfigStagedAction {
   action: 'ClearVitalGeneratorConfigStaged';
   vital: VitalTypes;
 }
+interface DisconnectMonitorAction {
+  action: 'DisconnectMonitor';
+}
 
 export type ManagerAction = ServerMonitorActions | SetSensorStagedAction
   | SetWaveformGeneratorConfigStagedAction | SetVitalGeneratorConfigStagedAction
   | ClearSensorStagedAction | ClearWaveformGeneratorConfigStagedAction
-  | ClearVitalGeneratorConfigStagedAction;
+  | ClearVitalGeneratorConfigStagedAction | DisconnectMonitorAction;
 
 export type ManagerState = SharedState & {
   [key in `${VitalTypes}GeneratorConfigStaged`]: Partial<VitalGeneratorConfig>;

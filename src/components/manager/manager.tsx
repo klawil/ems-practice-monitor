@@ -77,12 +77,8 @@ export default function Manager() {
       action: 'leave',
     });
     dispatch({
-      action: 'SetMonitorId',
-    });
-    dispatch({
-      action: 'SetConnected',
-      state: false,
-    });
+      action: 'DisconnectMonitor',
+    })
   }
 
   const searchMonitorId = searchParams.get('monitorId');
