@@ -382,6 +382,7 @@ export default function Monitor() {
       <h1>Connect a Manager</h1>
       {state.monitorId && <>
         <h2>Client ID: {state.monitorId || 'N/A'}</h2>
+        <h3>Visit {window.location.protocol}//{window.location.host}</h3>
         <div>
           <QRCode
             value={`${origin}/manager?monitorId=${state.monitorId}`}
