@@ -309,7 +309,7 @@ export default function Monitor() {
   const [popMessage, sendMessage] = useMessaging(
     () => `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api`,
   );
-  const [origin, setOrigin] = useState<string>('');
+  const [loc, setLoc] = useState<Location | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const wakeLock = useRef<WakeLockSentinel | null>(null);
 
@@ -337,10 +337,10 @@ export default function Monitor() {
   }, [state]);
 
   useEffect(() => {
-    if (origin === '') {
-      setOrigin(window.location.origin);
+    if (loc === null) {
+      setLoc(window.location);
     }
-  }, [])
+  }, [loc]);
 
   useEffect(() => {
     const fsChange = () => setIsFullScreen(!!document.fullscreenElement);
@@ -443,10 +443,10 @@ export default function Monitor() {
       <h1>Connect a Manager</h1>
       {state.monitorId && <>
         <h2>Client ID: {state.monitorId || 'N/A'}</h2>
-        <h3>Visit {window && window.location.protocol}//{window && window.location.host}</h3>
+        <h3>{loc ? loc.protocol : ''}{'//'}{loc ? loc.host : ''}</h3>
         <div>
           <QRCode
-            value={`${origin}/manager?monitorId=${state.monitorId}`}
+            value={`${loc && loc.origin}/manager?monitorId=${state.monitorId}`}
             fgColor='white'
             bgColor='rgba(0,0,0,0)'
           />

@@ -14,6 +14,7 @@ export default function Home() {
             <Image
               className={styles.image}
               src="/monitor-blank.png"
+              alt="Monitor screenshot"
               rounded
               thumbnail
             />
@@ -25,6 +26,7 @@ export default function Home() {
             <Image
               className={styles.image}
               src="/manager-blank.png"
+              alt="Manager screenshot"
               rounded
               thumbnail
             />
