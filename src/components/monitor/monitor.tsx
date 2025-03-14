@@ -16,6 +16,7 @@ import { ServerWebsocketMessage } from "@/types/websocket";
 import { vitalTypes, VitalTypes, WaveformBoxTypes } from "@/types/state";
 import { QRCode } from 'react-qrcode-logo';
 import { BsFullscreen, BsFullscreenExit } from 'react-icons/bs';
+import { Container } from 'react-bootstrap';
 
 const waveformSamples = 30 * 5; // 30Hz for 5s
 const noDataWaveformBlips = 30;
@@ -65,6 +66,8 @@ const vitalBoxConfigs: VitalBoxPartialProps[] = [
 ];
 
 const tickTime = Math.round(1000 / 30); // 30Hz
+
+const monitorRatio = 640 / 480; // Width / height
 
 const vitalGenerators: {
   [key in VitalTypes]: VitalGenerator;
@@ -312,6 +315,8 @@ export default function Monitor() {
   const [loc, setLoc] = useState<Location | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const wakeLock = useRef<WakeLockSentinel | null>(null);
+  const mainBoxRef = useRef<HTMLDivElement | null>(null);
+  const [scale, setScale] = useState<number | null>(null);
 
   useEffect(() => {
     if (state.monitorId && !state.connected) {
@@ -351,17 +356,12 @@ export default function Monitor() {
   }, []);
 
   useEffect(() => {
-    console.log('useEffect');
-
     const requestWakeLock = async () => {
       try {
         wakeLock.current = await navigator.wakeLock.request('screen');
         wakeLock.current.addEventListener('release', () => {
-          console.log('Screen wake lock released:', wakeLock.current?.released);
           wakeLock.current = null;
         });
-
-        console.log('Screen wake lock active:', wakeLock.current?.released === false);
       } catch (err) {
         console.error(`Failed to acquire wake lock: ${err}`);
       }
@@ -380,7 +380,6 @@ export default function Monitor() {
 
     return () => {
       const release = async () => {
-        console.log('Releasing wakelock');
         await wakeLock.current?.release();
         wakeLock.current = null;
       };
@@ -389,6 +388,28 @@ export default function Monitor() {
     }
   }, []);
 
+  useEffect(() => {
+    const checkScale = () => {
+      const winHeight = window.innerHeight;
+      const winWidth = window.innerWidth;
+      let newScale = 1;
+      if (winWidth / winHeight < monitorRatio) {
+        newScale = winWidth / 640;
+      } else {
+        newScale = winHeight / 480;
+      }
+
+      if (newScale !== scale) {
+        setScale(newScale);
+      }
+    }
+  
+    checkScale();
+    window.addEventListener('resize', checkScale);
+
+    return () => window.removeEventListener('resize', checkScale);
+  })
+
   if (typeof state.monitorId === 'undefined') {
     dispatch({
       action: 'SetMonitorId',
@@ -396,7 +417,9 @@ export default function Monitor() {
     });
   }
 
-  const mainBoxRef = useRef<HTMLDivElement | null>(null);
+  const scaleStyles = scale !== null ? {
+    transform: `scale(${scale})`
+  } : {};
 
   if (state.connected) {
     const vitalBoxes = vitalBoxConfigs.map((config, i) => <VitalBox
@@ -409,8 +432,12 @@ export default function Monitor() {
       key={i}
     />);
 
-    return (
-      <div className={styles.monitor} ref={mainBoxRef}>
+    return (<Container
+      fluid={true}
+      className={styles.monitorContainer}
+      ref={mainBoxRef}
+    >
+      <div className={styles.monitor} style={scaleStyles}>
         <div className={styles.monitorVitalSide}>
           {vitalBoxes}
         </div>
@@ -432,13 +459,22 @@ export default function Monitor() {
           className={styles.fullScreenButton}
         />}
       </div>
-    )
+    </Container>)
   }
 
-  return (
+  return (<Container
+    fluid={true}
+    className={styles.monitorContainer}
+    ref={mainBoxRef}
+  >
     <div
+      style={scaleStyles}
       suppressHydrationWarning={true}
-      className={`text-center ${styles.monitor} ${styles.monitorNoManager}`}
+      className={[
+        'text-center',
+        styles.monitor,
+        styles.monitorNoManager,
+      ].join(' ')}
     >
       <h1>Connect a Manager</h1>
       {state.monitorId && <>
@@ -452,6 +488,15 @@ export default function Monitor() {
           />
         </div>
       </>}
+
+      {!isFullScreen && <BsFullscreen
+        onClick={() => mainBoxRef.current !== null && mainBoxRef.current.requestFullscreen()}
+        className={styles.fullScreenButton}
+      />}
+      {isFullScreen && <BsFullscreenExit
+        onClick={() => document.exitFullscreen()}
+        className={styles.fullScreenButton}
+      />}
     </div>
-  )
+  </Container>)
 }

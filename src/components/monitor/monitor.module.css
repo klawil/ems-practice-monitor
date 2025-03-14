@@ -1,3 +1,8 @@
+.monitorContainer {
+  display: grid;
+  height: 100vh;
+}
+
 .monitor {
   width: 640px;
   height: 480px;
@@ -12,6 +17,13 @@
   grid-template-columns: unset;
   grid-template-rows: 50px 50px;
   place-content: center;
+}
+
+.scaleToWidth {
+  transform: scale(calc(100vw / 640px));
+}
+.scaleToHeight {
+  transform: scale(calc(100vh / 480px));
 }
 
 .monitorVitalSide {
