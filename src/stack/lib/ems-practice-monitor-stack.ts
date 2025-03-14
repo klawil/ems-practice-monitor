@@ -104,6 +104,7 @@ export class EmsPracticeMonitorStack extends Stack {
       defaultBehavior: {
         origin: cloudfrontOrigins.S3BucketOrigin.withOriginAccessControl(bucket),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         functionAssociations: [
           {
             eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
@@ -119,6 +120,7 @@ export class EmsPracticeMonitorStack extends Stack {
             `${api.apiId}.execute-api.${this.region}.${this.urlSuffix}`,
           ),
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
       },
     });
