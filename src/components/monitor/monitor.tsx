@@ -410,12 +410,14 @@ export default function Monitor() {
     return () => window.removeEventListener('resize', checkScale);
   })
 
-  if (typeof state.monitorId === 'undefined') {
-    dispatch({
-      action: 'SetMonitorId',
-      id: generateMonitorId(),
-    });
-  }
+  useEffect(() => {
+    if (typeof state.monitorId === 'undefined') {
+      dispatch({
+        action: 'SetMonitorId',
+        id: generateMonitorId(),
+      });
+    }
+  }, []);
 
   const scaleStyles = scale !== null ? {
     transform: `scale(${scale})`
@@ -449,16 +451,16 @@ export default function Monitor() {
           {waveforms}
           <div></div>
         </div>
-
-        {!isFullScreen && <BsFullscreen
-          onClick={() => mainBoxRef.current !== null && mainBoxRef.current.requestFullscreen()}
-          className={styles.fullScreenButton}
-        />}
-        {isFullScreen && <BsFullscreenExit
-          onClick={() => document.exitFullscreen()}
-          className={styles.fullScreenButton}
-        />}
       </div>
+
+      {!isFullScreen && <BsFullscreen
+        onClick={() => mainBoxRef.current !== null && mainBoxRef.current.requestFullscreen()}
+        className={styles.fullScreenButton}
+      />}
+      {isFullScreen && <BsFullscreenExit
+        onClick={() => document.exitFullscreen()}
+        className={styles.fullScreenButton}
+      />}
     </Container>)
   }
 
@@ -488,15 +490,15 @@ export default function Monitor() {
           />
         </div>
       </>}
-
-      {!isFullScreen && <BsFullscreen
-        onClick={() => mainBoxRef.current !== null && mainBoxRef.current.requestFullscreen()}
-        className={styles.fullScreenButton}
-      />}
-      {isFullScreen && <BsFullscreenExit
-        onClick={() => document.exitFullscreen()}
-        className={styles.fullScreenButton}
-      />}
     </div>
+
+    {!isFullScreen && <BsFullscreen
+      onClick={() => mainBoxRef.current !== null && mainBoxRef.current.requestFullscreen()}
+      className={styles.fullScreenButton}
+    />}
+    {isFullScreen && <BsFullscreenExit
+      onClick={() => document.exitFullscreen()}
+      className={styles.fullScreenButton}
+    />}
   </Container>)
 }
