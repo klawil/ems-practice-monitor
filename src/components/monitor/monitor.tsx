@@ -417,7 +417,7 @@ export default function Monitor() {
         id: generateMonitorId(),
       });
     }
-  }, []);
+  }, [state.monitorId]);
 
   const scaleStyles = scale !== null ? {
     transform: `scale(${scale})`

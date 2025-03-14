@@ -1,6 +1,5 @@
 import { ManagerState, ManagerAction } from "@/types/manager/state";
 import { defaultReducer, defaultState } from "../reducer";
-import { vitalTypes, waveformConfigTypes } from "@/types/state";
 
 export const defaultManagerState: ManagerState = {
   ...defaultState,
