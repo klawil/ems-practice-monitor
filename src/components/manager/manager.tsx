@@ -110,9 +110,13 @@ export default function Manager() {
     >
       <h1>Control a Monitor</h1>
         <Row>
-          <Form.Label className="text-end" column>Monitor ID</Form.Label>
-          <Col>
+          <Col
+            xl={{span: 4, offset: 4}}
+            lg={{span: 6, offset: 3}}
+            md={{span: 8, offset: 2}}
+          >
             <InputGroup>
+              <InputGroup.Text>Monitor ID</InputGroup.Text>
               <Form.Control
                 type="text"
                 value={state.monitorId || ''}
@@ -120,8 +124,12 @@ export default function Manager() {
                 disabled={state.connected}
                 onChange={e => dispatch({
                   action: 'SetMonitorId',
-                  id: e.target.value,
+                  id: e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, ''),
                 })}
+                onKeyUp={e => {
+                  if (e.key === 'Enter')
+                    connectToMonitor();
+                }}
               />
               {!state.connected && <Button
                 variant="success"
