@@ -33,3 +33,17 @@
   font-size: 15px;
   line-height: var(--monitor-vital-box-title-height);
 }
+
+.fullScreenButton {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  text-align: center;
+
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  border: 1px solid white;
+}

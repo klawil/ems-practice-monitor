@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import VitalBox, { VitalBoxPartialProps } from "@/components/vital-box/vital-box";
 import styles from "./monitor.module.css";
 import Waveform from "@/components/waveform/waveform";
@@ -15,6 +15,7 @@ import { useMessaging } from "@/logic/websocket";
 import { ServerWebsocketMessage } from "@/types/websocket";
 import { vitalTypes, VitalTypes, WaveformBoxTypes } from "@/types/state";
 import { QRCode } from 'react-qrcode-logo';
+import { BsFullscreen, BsFullscreenExit } from 'react-icons/bs';
 
 const waveformSamples = 30 * 5; // 30Hz for 5s
 const noDataWaveformBlips = 30;
@@ -309,6 +310,8 @@ export default function Monitor() {
     () => `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api`,
   );
   const [origin, setOrigin] = useState<string>('');
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const wakeLock = useRef<WakeLockSentinel | null>(null);
 
   useEffect(() => {
     if (state.monitorId && !state.connected) {
@@ -339,12 +342,61 @@ export default function Monitor() {
     }
   }, [])
 
+  useEffect(() => {
+    const fsChange = () => setIsFullScreen(!!document.fullscreenElement);
+
+    document.addEventListener('fullscreenchange', fsChange);
+
+    return () => document.removeEventListener('fullscreenchange', fsChange);
+  }, []);
+
+  useEffect(() => {
+    console.log('useEffect');
+
+    const requestWakeLock = async () => {
+      try {
+        wakeLock.current = await navigator.wakeLock.request('screen');
+        wakeLock.current.addEventListener('release', () => {
+          console.log('Screen wake lock released:', wakeLock.current?.released);
+          wakeLock.current = null;
+        });
+
+        console.log('Screen wake lock active:', wakeLock.current?.released === false);
+      } catch (err) {
+        console.error(`Failed to acquire wake lock: ${err}`);
+      }
+    };
+
+    if (wakeLock.current === null) {
+      requestWakeLock();
+    }
+
+    // Automatically try to re-aquire the wake lock
+    const visChange = async () => {
+      if (document.visibilityState === "visible")
+        await requestWakeLock();
+    }
+    document.addEventListener("visibilitychange", visChange);
+
+    return () => {
+      const release = async () => {
+        console.log('Releasing wakelock');
+        await wakeLock.current?.release();
+        wakeLock.current = null;
+      };
+      document.removeEventListener('visibilitychange', visChange);
+      release();
+    }
+  }, []);
+
   if (typeof state.monitorId === 'undefined') {
     dispatch({
       action: 'SetMonitorId',
       id: generateMonitorId(),
     });
   }
+
+  const mainBoxRef = useRef<HTMLDivElement | null>(null);
 
   if (state.connected) {
     const vitalBoxes = vitalBoxConfigs.map((config, i) => <VitalBox
@@ -358,7 +410,7 @@ export default function Monitor() {
     />);
 
     return (
-      <div className={styles.monitor}>
+      <div className={styles.monitor} ref={mainBoxRef}>
         <div className={styles.monitorVitalSide}>
           {vitalBoxes}
         </div>
@@ -370,6 +422,15 @@ export default function Monitor() {
           {waveforms}
           <div></div>
         </div>
+
+        {!isFullScreen && <BsFullscreen
+          onClick={() => mainBoxRef.current !== null && mainBoxRef.current.requestFullscreen()}
+          className={styles.fullScreenButton}
+        />}
+        {isFullScreen && <BsFullscreenExit
+          onClick={() => document.exitFullscreen()}
+          className={styles.fullScreenButton}
+        />}
       </div>
     )
   }
@@ -382,7 +443,7 @@ export default function Monitor() {
       <h1>Connect a Manager</h1>
       {state.monitorId && <>
         <h2>Client ID: {state.monitorId || 'N/A'}</h2>
-        <h3>Visit {window.location.protocol}//{window.location.host}</h3>
+        <h3>Visit {window && window.location.protocol}//{window && window.location.host}</h3>
         <div>
           <QRCode
             value={`${origin}/manager?monitorId=${state.monitorId}`}
