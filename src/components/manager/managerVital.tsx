@@ -58,13 +58,32 @@ export default function ManagerVital({
             : state[`${vital}GeneratorConfig`].targetRange}
           onChange={checkForChange('targetRange')}
         />
-        {hasStagedChanges && <Button
-          variant="danger"
-          onClick={() => dispatch({
-            action: 'ClearVitalGeneratorConfigStaged',
-            vital,
-          })}
-        ><BsArrowCounterclockwise /></Button>}
+        {hasStagedChanges && <>
+          <InputGroup.Text>
+            <Form.Check
+              label="Instant"
+              style={{
+                marginBottom: 0,
+              }}
+              checked={!!state[`${vital}GeneratorConfigStaged`].instant}
+              onChange={e => {
+                dispatch({
+                  action: 'SetVitalGeneratorConfigStaged',
+                  vital,
+                  instant: e.target.checked,
+                });
+              }}
+            />
+            {/* Instant */}
+          </InputGroup.Text>
+          <Button
+            variant="danger"
+            onClick={() => dispatch({
+              action: 'ClearVitalGeneratorConfigStaged',
+              vital,
+            })}
+          ><BsArrowCounterclockwise /></Button>
+        </>}
       </InputGroup>
     </Col>
   )

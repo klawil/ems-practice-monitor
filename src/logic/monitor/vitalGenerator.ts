@@ -17,8 +17,12 @@ export class VitalGenerator {
     const rangeMax = config.targetValue + config.targetRange;
 
     const maxDelta = Math.floor((nowTime - this.lastUpdate) * config.maxChangePerS / 1000);
-    const possibleMin = this.currentValue - maxDelta;
-    const possibleMax = this.currentValue + maxDelta;
+    const possibleMin = config.instant
+      ? rangeMin
+      : this.currentValue - maxDelta;
+    const possibleMax = config.instant
+      ? rangeMax
+      : this.currentValue + maxDelta;
     const directionOfChange = this.currentValue > config.targetValue
       ? -1
       : 1;

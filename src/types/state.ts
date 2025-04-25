@@ -29,6 +29,7 @@ export interface VitalGeneratorConfig {
   targetRange: number;
   maxUpdateFreq: number;
   maxChangePerS: number;
+  instant?: boolean;
 }
 
 export interface WaveformGeneratorConfig {
