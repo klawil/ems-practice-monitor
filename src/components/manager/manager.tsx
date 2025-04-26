@@ -28,6 +28,10 @@ function parseMessage(
       dispatch({
         action: 'SetMonitorId',
       });
+      dispatch({
+        action: 'SetMonitorIdInput',
+        id: '',
+      });
       break;
     default:
       dispatch(message);
@@ -51,8 +55,11 @@ export default function Manager() {
   const [
     popMessage,
     sendMessage,
+    isConnected,
   ] = useMessaging(
     () => `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api`,
+    'manager',
+    state.monitorId,
   );
 
   useEffect(() => {
@@ -63,13 +70,10 @@ export default function Manager() {
   }, [popMessage]);
 
   function connectToMonitor() {
-    if (typeof state.monitorId !== 'undefined') {
-      sendMessage({
-        action: 'join',
-        clientType: 'manager',
-        id: state.monitorId
-      });
-    }
+    dispatch({
+      action: 'SetMonitorId',
+      id: state.monitorIdInput,
+    });
   }
 
   function disconnectMonitor() {
@@ -78,7 +82,7 @@ export default function Manager() {
     });
     dispatch({
       action: 'DisconnectMonitor',
-    })
+    });
   }
 
   const searchMonitorId = searchParams.get('monitorId');
@@ -86,6 +90,10 @@ export default function Manager() {
     !state.monitorId &&
     searchMonitorId
   ) {
+    dispatch({
+      action: 'SetMonitorIdInput',
+      id: searchMonitorId,
+    });
     dispatch({
       action: 'SetMonitorId',
       id: searchMonitorId,
@@ -118,11 +126,11 @@ export default function Manager() {
             <InputGroup.Text>Monitor ID</InputGroup.Text>
             <Form.Control
               type="text"
-              value={state.monitorId || ''}
+              value={state.monitorIdInput || ''}
               placeholder="XXXXX"
               disabled={state.connected}
               onChange={e => dispatch({
-                action: 'SetMonitorId',
+                action: 'SetMonitorIdInput',
                 id: e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, ''),
               })}
               onKeyUp={e => {
@@ -132,7 +140,7 @@ export default function Manager() {
             />
             {!state.connected && <Button
               variant="success"
-              disabled={state.connected || !state.monitorId || state.monitorId.length !== 5}
+              disabled={state.connected || state.monitorIdInput.length !== 5}
               onClick={connectToMonitor}
             >Connect</Button>}
             {state.connected && <Button
@@ -142,7 +150,7 @@ export default function Manager() {
           </InputGroup>
         </Col>
       </Row>
-      {state.connected && <>
+      {state.connected && isConnected && <>
         <Row className="mt-3">
           <h3>Sensors</h3>
         </Row>
@@ -154,8 +162,7 @@ export default function Manager() {
             key={sensor}
           />)}
         </Row>
-      </>}
-      {state.connected && <>
+        
         <Row className="mt-3">
           <h3>Vitals</h3>
         </Row>
@@ -167,74 +174,76 @@ export default function Manager() {
             key={vital}
           />)}
         </Row>
+
+        <Row>
+          {waveformConfigTypes.map(waveform => <ManagerWaveform
+            state={state}
+            waveform={waveform}
+            dispatch={dispatch}
+            key={waveform}
+          />)}
+        </Row>
+
+        {hasStagedChanges && <Button
+          variant="success"
+          onClick={() => {
+            // Send the sensors
+            const sensorsStaged = getPrunedObj(state.sensorsStaged);
+            if (Object.keys(sensorsStaged).length > 0) {
+              const action: ServerMonitorActions = {
+                action: 'SetSensor',
+                ...sensorsStaged,
+              };
+              sendMessage(action);
+              dispatch(action);
+            }
+            dispatch({ action: 'ClearSensorStaged' });
+
+            // Send the vital generator configs
+            vitalTypes.forEach(vital => {
+              const prunedObj = getPrunedObj(state[`${vital}GeneratorConfigStaged`]);
+              if (Object.keys(prunedObj).length === 0) return;
+
+              const action: ServerMonitorActions = {
+                action: 'SetVitalGeneratorConfig',
+                vital,
+                ...prunedObj,
+              };
+              sendMessage(action);
+              dispatch(action);
+              dispatch({
+                action: 'ClearVitalGeneratorConfigStaged',
+                vital,
+              });
+            });
+
+            // Send the waveform generator configs
+            waveformConfigTypes.forEach(waveform => {
+              const prunedObj = getPrunedObj(state[`${waveform}GeneratorConfigStaged`]);
+              if (Object.keys(prunedObj).length === 0) return;
+
+              const action: ServerMonitorActions = {
+                action: 'SetWaveformGeneratorConfig',
+                waveform,
+                ...prunedObj,
+              };
+              sendMessage(action);
+              dispatch(action);
+              dispatch({
+                action: 'ClearWaveformGeneratorConfigStaged',
+                waveform,
+              });
+            });
+          }}
+          className="container"
+          style={{
+            position: 'fixed',
+            bottom: '10px',
+            left: '50%',
+            transform: 'translate(-50%, 0)',
+          }}
+        >Send to Monitor</Button>}
       </>}
-      {state.connected && <Row>
-        {waveformConfigTypes.map(waveform => <ManagerWaveform
-          state={state}
-          waveform={waveform}
-          dispatch={dispatch}
-          key={waveform}
-        />)}
-      </Row>}
-      {hasStagedChanges && <Button
-        variant="success"
-        onClick={() => {
-          // Send the sensors
-          const sensorsStaged = getPrunedObj(state.sensorsStaged);
-          if (Object.keys(sensorsStaged).length > 0) {
-            const action: ServerMonitorActions = {
-              action: 'SetSensor',
-              ...sensorsStaged,
-            };
-            sendMessage(action);
-            dispatch(action);
-          }
-          dispatch({ action: 'ClearSensorStaged' });
-
-          // Send the vital generator configs
-          vitalTypes.forEach(vital => {
-            const prunedObj = getPrunedObj(state[`${vital}GeneratorConfigStaged`]);
-            if (Object.keys(prunedObj).length === 0) return;
-
-            const action: ServerMonitorActions = {
-              action: 'SetVitalGeneratorConfig',
-              vital,
-              ...prunedObj,
-            };
-            sendMessage(action);
-            dispatch(action);
-            dispatch({
-              action: 'ClearVitalGeneratorConfigStaged',
-              vital,
-            });
-          });
-
-          // Send the waveform generator configs
-          waveformConfigTypes.forEach(waveform => {
-            const prunedObj = getPrunedObj(state[`${waveform}GeneratorConfigStaged`]);
-            if (Object.keys(prunedObj).length === 0) return;
-
-            const action: ServerMonitorActions = {
-              action: 'SetWaveformGeneratorConfig',
-              waveform,
-              ...prunedObj,
-            };
-            sendMessage(action);
-            dispatch(action);
-            dispatch({
-              action: 'ClearWaveformGeneratorConfigStaged',
-              waveform,
-            });
-          });
-        }}
-        className="container"
-        style={{
-          position: 'fixed',
-          bottom: '10px',
-          left: '50%',
-          transform: 'translate(-50%, 0)',
-        }}
-      >Send to Monitor</Button>}
     </Container>
   );
 }

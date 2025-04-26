@@ -3,6 +3,7 @@ import { defaultReducer, defaultState } from "../reducer";
 
 export const defaultManagerState: ManagerState = {
   ...defaultState,
+  monitorIdInput: '',
 
   sensorsStaged: {},
 
@@ -74,6 +75,12 @@ export function stateReducer(state: ManagerState, action: ManagerAction): Manage
     case 'DisconnectMonitor': {
       return {
         ...defaultManagerState,
+      };
+    }
+    case 'SetMonitorIdInput': {
+      return {
+        ...state,
+        monitorIdInput: action.id,
       };
     }
     default: {

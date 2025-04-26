@@ -25,11 +25,15 @@ interface ClearVitalGeneratorConfigStagedAction {
 interface DisconnectMonitorAction {
   action: 'DisconnectMonitor';
 }
+interface SetMonitorIdInputAction {
+  action: 'SetMonitorIdInput';
+  id: string;
+}
 
 export type ManagerAction = ServerMonitorActions | SetSensorStagedAction
   | SetWaveformGeneratorConfigStagedAction | SetVitalGeneratorConfigStagedAction
   | ClearSensorStagedAction | ClearWaveformGeneratorConfigStagedAction
-  | ClearVitalGeneratorConfigStagedAction | DisconnectMonitorAction;
+  | ClearVitalGeneratorConfigStagedAction | DisconnectMonitorAction | SetMonitorIdInputAction;
 
 export type ManagerState = SharedState & {
   [key in `${VitalTypes}GeneratorConfigStaged`]: Partial<VitalGeneratorConfig>;
@@ -41,4 +45,6 @@ export type ManagerState = SharedState & {
   co2GeneratorConfigStaged: Partial<Co2WaveformGeneratorConfig>;
   spo2GeneratorConfigStaged: Partial<Spo2WaveformGeneratorConfig>;
   ekgGeneratorConfigStaged: Partial<EkgWaveformGeneratorConfig>;
+
+  monitorIdInput: string;
 }

@@ -309,24 +309,16 @@ function parseMessage(
 
 export default function Monitor() {
   const [state, dispatch] = useReducer(stateReducer, defaultMonitorState);
-  const [popMessage, sendMessage] = useMessaging(
+  const [popMessage, _, isConnected] = useMessaging(
     () => `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api`,
+    'monitor',
+    state.monitorId,
   );
   const [loc, setLoc] = useState<Location | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const wakeLock = useRef<WakeLockSentinel | null>(null);
   const mainBoxRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (state.monitorId && !state.connected) {
-      sendMessage({
-        action: 'join',
-        clientType: 'monitor',
-        id: state.monitorId as string,
-      });
-    }
-  }, [sendMessage, state.monitorId, state.connected]);
 
   useEffect(() => {
     const message = popMessage();
@@ -423,7 +415,7 @@ export default function Monitor() {
     transform: `scale(${scale})`
   } : {};
 
-  if (state.connected) {
+  if (state.connected && isConnected) {
     const vitalBoxes = vitalBoxConfigs.map((config, i) => <VitalBox
       {...config}
       state={state}
@@ -478,17 +470,23 @@ export default function Monitor() {
         styles.monitorNoManager,
       ].join(' ')}
     >
-      <h1>Connect a Manager</h1>
-      {state.monitorId && <>
-        <h2>Client ID: {state.monitorId || 'N/A'}</h2>
-        <h3>{loc ? loc.protocol : ''}{'//'}{loc ? loc.host : ''}</h3>
-        <div>
-          <QRCode
-            value={`${loc && loc.origin}/manager?monitorId=${state.monitorId}`}
-            fgColor='white'
-            bgColor='rgba(0,0,0,0)'
-          />
-        </div>
+      {isConnected && <>
+        <h1>Connect a Manager</h1>
+        {state.monitorId && <>
+          <h2>Client ID: {state.monitorId || 'N/A'}</h2>
+          <h3>{loc ? loc.protocol : ''}{'//'}{loc ? loc.host : ''}</h3>
+          <div>
+            <QRCode
+              value={`${loc && loc.origin}/manager?monitorId=${state.monitorId}`}
+              fgColor='white'
+              bgColor='rgba(0,0,0,0)'
+            />
+          </div>
+        </>}
+      </>}
+      {!isConnected && <>
+        <h1>Not Connected To Server</h1>
+        <h2>Try refreshing the page</h2>
       </>}
     </div>
 

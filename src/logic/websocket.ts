@@ -1,6 +1,6 @@
 'use client';
 
-import { ClientWebsocketMessage, ServerWebsocketMessage } from '@/types/websocket';
+import { ClientType, ClientWebsocketMessage, ServerWebsocketMessage } from '@/types/websocket';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 function useQueue<T>(initialValue: T[] = []) {
@@ -36,8 +36,12 @@ function useQueue<T>(initialValue: T[] = []) {
   };
 }
 
+const startRetryDelay = 5; // in seconds
+
 export function useMessaging(
   url: () => string,
+  clientType: ClientType,
+  monitorId: string | undefined,
 ) {
   const ref = useRef<WebSocket>(null);
   const {
@@ -47,7 +51,12 @@ export function useMessaging(
   const cacheRef = useRef<ClientWebsocketMessage[]>([]);
   const target = useRef(url);
 
-  useEffect(() => {
+  const [ isConnected, setIsConnected ] = useState(false);
+  const [ lastConnEvent, setLastConnEvent ] = useState(0);
+
+  const [ joinMessage, setJoinMesage ] = useState<ClientWebsocketMessage | null>(null);
+
+  const connectToWs = useCallback(() => {
     if (ref.current) return;
     const socket = new WebSocket(target.current());
     ref.current = socket;
@@ -58,6 +67,11 @@ export function useMessaging(
       'open',
       () => {
         console.log('Socket opened', cacheRef.current.length);
+        setLastConnEvent(Date.now());
+        setIsConnected(true);
+        if (joinMessage !== null) {
+          socket.send(JSON.stringify(joinMessage));
+        }
         if (cacheRef.current.length > 0) {
           cacheRef.current.forEach(msg => {
             console.log('Sending cached message:', msg);
@@ -92,6 +106,9 @@ export function useMessaging(
     socket.addEventListener(
       'close',
       (event) => {
+        setLastConnEvent(Date.now());
+        setIsConnected(false);
+        ref.current = null;
         if (event.wasClean) return;
         console.error(`close`, event);
       },
@@ -103,7 +120,7 @@ export function useMessaging(
       controller.abort();
       ref.current = null;
     };
-  }, [addMessage]);
+  }, [addMessage, joinMessage]);
 
   const sendMessage = useCallback((message: ClientWebsocketMessage) => {
     if (!ref.current || ref.current.readyState !== ref.current.OPEN) {
@@ -115,5 +132,41 @@ export function useMessaging(
     }
   }, []);
 
-  return [popMessage, sendMessage] as const;
+  useEffect(() => {
+    if (isConnected) {
+      return;
+    }
+
+    let timeout = setTimeout(() => {});
+    if (Date.now() - lastConnEvent < startRetryDelay * 1000) {
+      timeout = setTimeout(connectToWs, Date.now() - lastConnEvent + (startRetryDelay * 1000));
+    } else {
+      connectToWs();
+    }
+
+    return () => clearTimeout(timeout);
+  }, [ isConnected, lastConnEvent, connectToWs ]);
+
+  useEffect(() => {
+    if (typeof monitorId === 'undefined') {
+      return;
+    }
+
+    const newJoinMessage = {
+      action: 'join',
+      clientType,
+      id: monitorId,
+    } as const;
+    setJoinMesage(newJoinMessage);
+
+    if (ref.current) {
+      sendMessage(newJoinMessage)
+    }
+  }, [monitorId, clientType, sendMessage]);
+
+  return [
+    popMessage,
+    sendMessage,
+    isConnected,
+  ] as const;
 }
