@@ -3,6 +3,7 @@ import { VitalGeneratorConfig } from "@/types/state";
 export class VitalGenerator {
   private currentValue: number = -1;
   private lastUpdate: number = 0;
+  private lastChange: number = 0;
 
   increment(config: VitalGeneratorConfig) {
     // Set the current value on the first run
@@ -16,7 +17,7 @@ export class VitalGenerator {
     const rangeMin = config.targetValue - config.targetRange;
     const rangeMax = config.targetValue + config.targetRange;
 
-    const maxDelta = Math.floor((nowTime - this.lastUpdate) * config.maxChangePerS / 1000);
+    const maxDelta = Math.floor((nowTime - this.lastChange) * config.maxChangePerS / 1000);
     const possibleMin = config.instant
       ? rangeMin
       : this.currentValue - maxDelta;
@@ -28,6 +29,7 @@ export class VitalGenerator {
       : 1;
 
     this.lastUpdate = nowTime;
+    const localLastValue = this.currentValue;
       
     // Move as much as we can towards the target
     if (
@@ -35,6 +37,9 @@ export class VitalGenerator {
       possibleMax < rangeMin
     ) {
       this.currentValue = this.currentValue + (maxDelta * directionOfChange);
+      if (this.currentValue !== localLastValue) {
+        this.lastChange = nowTime;
+      }
       return;
     }
 
@@ -47,6 +52,9 @@ export class VitalGenerator {
       : possibleMax;
     
     this.currentValue = Math.random() * (maxValue - minValue) + minValue;
+    if (this.currentValue !== localLastValue) {
+      this.lastChange = nowTime;
+    }
   }
 
   get(): number {

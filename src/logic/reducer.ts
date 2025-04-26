@@ -18,19 +18,19 @@ export const defaultState: SharedState = {
   SpO2GeneratorConfig: {
     targetValue: 95,
     targetRange: 2,
-    maxChangePerS: 2,
+    maxChangePerS: 0.5,
     maxUpdateFreq: 1,
   },
   RRGeneratorConfig: {
     targetValue: 16,
     targetRange: 3,
-    maxChangePerS: 5,
+    maxChangePerS: 1,
     maxUpdateFreq: 5,
   },
   CO2GeneratorConfig: {
     targetValue: 40,
     targetRange: 3,
-    maxChangePerS: 5,
+    maxChangePerS: 1,
     maxUpdateFreq: 5,
   },
   SBPGeneratorConfig: {
