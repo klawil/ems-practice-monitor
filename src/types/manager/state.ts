@@ -29,11 +29,15 @@ interface SetMonitorIdInputAction {
   action: 'SetMonitorIdInput';
   id: string;
 }
+interface ClearInstantChangesAction {
+  action: 'ClearInstantChanges';
+}
 
 export type ManagerAction = ServerMonitorActions | SetSensorStagedAction
   | SetWaveformGeneratorConfigStagedAction | SetVitalGeneratorConfigStagedAction
   | ClearSensorStagedAction | ClearWaveformGeneratorConfigStagedAction
-  | ClearVitalGeneratorConfigStagedAction | DisconnectMonitorAction | SetMonitorIdInputAction;
+  | ClearVitalGeneratorConfigStagedAction | DisconnectMonitorAction | SetMonitorIdInputAction
+  | ClearInstantChangesAction;
 
 export type ManagerState = SharedState & {
   [key in `${VitalTypes}GeneratorConfigStaged`]: Partial<VitalGeneratorConfig>;

@@ -135,6 +135,11 @@ function getVitalInformation(
   if (returnVal.hasData) {
     returnVal.value = Math.round(state[vital].value);
     returnVal.valueStr = returnVal.value.toString();
+
+    // Special case - SpO2 below 50 gets a '<50'
+    if (vital === 'SpO2' && returnVal.value < 50) {
+      returnVal.valueStr = '<50';
+    }
   }
 
   return returnVal;

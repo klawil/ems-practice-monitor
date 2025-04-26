@@ -86,6 +86,9 @@ export default function Manager() {
       action: 'SyncState',
       ...getSharedState(state),
     });
+    dispatch({
+      action: 'ClearInstantChanges',
+    });
     setShouldSendChanges(false);
   }, [shouldSendChanges, sendMessage]); // eslint-disable-line
 

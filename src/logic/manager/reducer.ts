@@ -1,5 +1,6 @@
 import { ManagerState, ManagerAction } from "@/types/manager/state";
 import { defaultReducer, defaultState } from "../reducer";
+import { vitalTypes } from "@/types/state";
 
 export const defaultManagerState: ManagerState = {
   ...defaultState,
@@ -36,6 +37,18 @@ export function stateReducer(state: ManagerState, action: ManagerAction): Manage
         ...state,
         [`${action.vital}GeneratorConfigStaged`]: {},
       };
+    case 'ClearInstantChanges': {
+      const newState = {
+        ...state,
+      };
+      vitalTypes.map(vital => {
+        newState[`${vital}GeneratorConfig`] = {
+          ...state[`${vital}GeneratorConfig`],
+          instant: false,
+        };
+      });
+      return newState;
+    }
     case 'SetSensorStaged':
       return {
         ...state,
