@@ -13,7 +13,7 @@ import { chartWaveformConfig, CO2Generator, LeadIIGenerator, Spo2Generator } fro
 import { MonitorAction, MonitorState, waveformBoxNames } from "@/types/monitor/state";
 import { useMessaging } from "@/logic/websocket";
 import { ServerWebsocketMessage } from "@/types/websocket";
-import { vitalTypes, VitalTypes, WaveformBoxTypes } from "@/types/state";
+import { getSharedState, vitalTypes, VitalTypes, WaveformBoxTypes } from "@/types/state";
 import { QRCode } from 'react-qrcode-logo';
 import { BsFullscreen, BsFullscreenExit } from 'react-icons/bs';
 import { Container } from 'react-bootstrap';
@@ -309,7 +309,7 @@ function parseMessage(
 
 export default function Monitor() {
   const [state, dispatch] = useReducer(stateReducer, defaultMonitorState);
-  const [popMessage, _, isConnected] = useMessaging(
+  const [popMessage, sendMessage, isConnected] = useMessaging(
     () => `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api`,
     'monitor',
     state.monitorId,
@@ -410,6 +410,24 @@ export default function Monitor() {
       });
     }
   }, [state.monitorId]);
+
+  useEffect(() => {
+    if (!isConnected && state.connected) {
+      dispatch({
+        action: 'SetConnected',
+        state: false,
+      });
+    }
+  }, [isConnected, state.connected]);
+
+  useEffect(() => {
+    if (!state.connected) return;
+
+    sendMessage({
+      action: 'SyncState',
+      ...getSharedState(state),
+    });
+  }, [state.connected, sendMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scaleStyles = scale !== null ? {
     transform: `scale(${scale})`

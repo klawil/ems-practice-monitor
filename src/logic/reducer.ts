@@ -20,6 +20,7 @@ export const defaultState: SharedState = {
     targetRange: 2,
     maxChangePerS: 0.5,
     maxUpdateFreq: 1,
+    absoluteMax: 100,
   },
   RRGeneratorConfig: {
     targetValue: 16,
@@ -111,6 +112,16 @@ export function defaultReducer(state: SharedState, action: ServerMonitorActions)
           ...state[`${waveform}GeneratorConfig`],
           ...data,
         },
+      };
+    }
+    case 'SyncState': {
+      const {
+        action: _,
+        ...data
+      } = action;
+      return {
+        ...state,
+        ...data,
       };
     }
     default:

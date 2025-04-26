@@ -3,11 +3,11 @@
 import { Button, Col, Container, Form, InputGroup, Row } from "react-bootstrap";
 import type { Metadata } from 'next'
 import { useMessaging } from "@/logic/websocket";
-import { ActionDispatch, useEffect, useReducer} from "react";
+import { ActionDispatch, useEffect, useReducer, useState} from "react";
 import { stateReducer, defaultManagerState } from "@/logic/manager/reducer";
 import { ServerWebsocketMessage } from "@/types/websocket";
 import { ManagerAction, ManagerState } from "@/types/manager/state";
-import { monitorSensors, ServerMonitorActions, vitalTypes, waveformConfigTypes } from "@/types/state";
+import { getSharedState, monitorSensors, ServerMonitorActions, vitalTypes, waveformConfigTypes } from "@/types/state";
 import ManagerSwitch from "./managerSwitch";
 import ManagerVital from "./managerVital";
 import ManagerWaveform from "./managerWaveform";
@@ -51,6 +51,7 @@ function getPrunedObj<T extends object>(v: T): T {
 
 export default function Manager() {
   const [ state, dispatch ] = useReducer(stateReducer, defaultManagerState);
+  const [ shouldSendChanges, setShouldSendChanges ] = useState(false);
   const searchParams = useSearchParams();
   const [
     popMessage,
@@ -68,6 +69,25 @@ export default function Manager() {
       parseMessage(message, dispatch);
     }
   }, [popMessage]);
+
+  useEffect(() => {
+    if (!isConnected && state.connected) {
+      dispatch({
+        action: 'SetConnected',
+        state: false,
+      });
+    }
+  }, [isConnected, state.connected]);
+
+  useEffect(() => {
+    if (!shouldSendChanges) return;
+
+    sendMessage({
+      action: 'SyncState',
+      ...getSharedState(state),
+    });
+    setShouldSendChanges(false);
+  }, [shouldSendChanges, sendMessage]); // eslint-disable-line
 
   function connectToMonitor() {
     dispatch({
@@ -194,7 +214,6 @@ export default function Manager() {
                 action: 'SetSensor',
                 ...sensorsStaged,
               };
-              sendMessage(action);
               dispatch(action);
             }
             dispatch({ action: 'ClearSensorStaged' });
@@ -209,7 +228,6 @@ export default function Manager() {
                 vital,
                 ...prunedObj,
               };
-              sendMessage(action);
               dispatch(action);
               dispatch({
                 action: 'ClearVitalGeneratorConfigStaged',
@@ -227,13 +245,14 @@ export default function Manager() {
                 waveform,
                 ...prunedObj,
               };
-              sendMessage(action);
               dispatch(action);
               dispatch({
                 action: 'ClearWaveformGeneratorConfigStaged',
                 waveform,
               });
             });
+
+            setShouldSendChanges(true);
           }}
           className="container"
           style={{

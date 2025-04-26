@@ -30,6 +30,7 @@ export interface VitalGeneratorConfig {
   maxUpdateFreq: number;
   maxChangePerS: number;
   instant?: boolean;
+  absoluteMax?: number;
 }
 
 export interface WaveformGeneratorConfig {
@@ -64,14 +65,33 @@ export type SharedState = {
   ekgGeneratorConfig: EkgWaveformGeneratorConfig;
 }
 
+export function getSharedState(state: SharedState): Omit<SharedState, 'connected'> {
+  return {
+    sensors: { ...state.sensors, },
+    co2GeneratorConfig: { ...state.co2GeneratorConfig, },
+    spo2GeneratorConfig: { ...state.spo2GeneratorConfig, },
+    ekgGeneratorConfig: { ...state.ekgGeneratorConfig, },
+
+    SpO2GeneratorConfig: { ...state.SpO2GeneratorConfig, },
+    HRGeneratorConfig: { ...state.HRGeneratorConfig, },
+    CO2GeneratorConfig: { ...state.CO2GeneratorConfig, },
+    RRGeneratorConfig: { ...state.RRGeneratorConfig, },
+    SBPGeneratorConfig: { ...state.SBPGeneratorConfig, },
+    DBPGeneratorConfig: { ...state.DBPGeneratorConfig, },
+  };
+}
+
 // Actions that can be shared via the server
 interface SetMonitorIdAction {
   action: 'SetMonitorId';
   id?: string;
 }
 interface SetConnectedAction {
-  action: 'SetConnected',
+  action: 'SetConnected';
   state: boolean;
+}
+interface SyncStateAction extends Omit<SharedState, 'connected'> {
+  action: 'SyncState';
 }
 export type SetSensorAction = {
   action: 'SetSensor';
@@ -89,4 +109,4 @@ export interface SetVitalGeneratorConfigAction extends Partial<VitalGeneratorCon
   vital: VitalTypes;
 }
 export type ServerMonitorActions = SetMonitorIdAction | SetConnectedAction | SetSensorAction
-  | SetWaveformGeneratorConfigAction | SetVitalGeneratorConfigAction;
+  | SetWaveformGeneratorConfigAction | SetVitalGeneratorConfigAction | SyncStateAction;

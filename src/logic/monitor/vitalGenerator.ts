@@ -5,6 +5,20 @@ export class VitalGenerator {
   private lastUpdate: number = 0;
   private lastChange: number = 0;
 
+  setCurrentValue(config: VitalGeneratorConfig, val: number) {
+    if (config.absoluteMax && val > config.absoluteMax) {
+      val = config.absoluteMax;
+    }
+    if (val < 0) {
+      val = 0;
+    }
+    if (this.currentValue !== val) {
+      this.lastChange = Date.now();
+    }
+
+    this.currentValue = val;
+  }
+
   increment(config: VitalGeneratorConfig) {
     // Set the current value on the first run
     if (this.currentValue === -1) {
@@ -29,17 +43,16 @@ export class VitalGenerator {
       : 1;
 
     this.lastUpdate = nowTime;
-    const localLastValue = this.currentValue;
       
     // Move as much as we can towards the target
     if (
       possibleMin > rangeMax ||
       possibleMax < rangeMin
     ) {
-      this.currentValue = this.currentValue + (maxDelta * directionOfChange);
-      if (this.currentValue !== localLastValue) {
-        this.lastChange = nowTime;
-      }
+      this.setCurrentValue(
+        config,
+        this.currentValue + (maxDelta * directionOfChange)
+      );
       return;
     }
 
@@ -51,10 +64,10 @@ export class VitalGenerator {
       ? rangeMax
       : possibleMax;
     
-    this.currentValue = Math.random() * (maxValue - minValue) + minValue;
-    if (this.currentValue !== localLastValue) {
-      this.lastChange = nowTime;
-    }
+    this.setCurrentValue(
+      config,
+      Math.random() * (maxValue - minValue) + minValue
+    );
   }
 
   get(): number {
