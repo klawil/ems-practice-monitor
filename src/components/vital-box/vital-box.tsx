@@ -83,6 +83,17 @@ const vitalBoxesToAlwaysShow: VitalBoxTypes[] = [
   'SpO2',
 ];
 
+const missingVitalValues: {
+  [key in VitalTypes]: string;
+} = {
+  HR: '---',
+  SpO2: '---',
+  CO2: '--',
+  RR: '',
+  SBP: '---',
+  DBP: '---',
+}
+
 interface VitalCurrentState {
   hasData: boolean;
   colorClass: string | null;
@@ -94,11 +105,12 @@ function getVitalInformation(
   vital: VitalTypes,
   activeWaveforms: WaveformBoxTypes[],
 ): VitalCurrentState {
+  const defaultVal = missingVitalValues[vital];
   const returnVal: VitalCurrentState = {
     hasData: false,
     colorClass: null,
     value: 0,
-    valueStr: '---',
+    valueStr: defaultVal,
   };
 
   // Get the configuration for the vital
@@ -140,6 +152,11 @@ function getVitalInformation(
     if (vital === 'SpO2' && returnVal.value < 50) {
       returnVal.valueStr = '<50';
     }
+
+    // Special case - 0 = ---
+    if (returnVal.value === 0) {
+      returnVal.valueStr = defaultVal;
+    }
   }
 
   return returnVal;
@@ -164,7 +181,9 @@ export default function VitalBox({
     ? Math.round((2 * vital2Info.value + vital1Info.value) / 3)
     : null;
   const vital3Str: string | null = vital3Val !== null
-    ? vital3Val.toString()
+    ? vital3Val === 0
+      ? ''
+      : vital3Val.toString()
     : null;
 
   const colorClassName = vital1Info.colorClass !== null && typeof styles[`monitorVitalBox${vital1Info.colorClass}`] !== 'undefined'
