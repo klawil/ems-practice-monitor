@@ -6,6 +6,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3Deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambdaNodeJs from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigatewayv2';
 import * as apigatewayIntegrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
@@ -34,6 +35,7 @@ export class EmsPracticeMonitorStack extends Stack {
     // Create the lambda function that will handle the logic
     const websocketLambda = new lambdaNodeJs.NodejsFunction(this, 'websocket', {
       entry: `${__dirname}/websocket-lambda.ts`,
+      runtime: lambda.Runtime.NODEJS_20_X,
       environment: {
         TABLE_CONNECTIONS: connectionTable.tableName,
       },
